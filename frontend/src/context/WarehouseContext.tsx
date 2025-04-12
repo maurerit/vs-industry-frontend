@@ -9,6 +9,12 @@ interface WarehouseContextType {
   prefetchedProduct: { [key: string]: BlueprintData | null };
   setPrefetchedProduct: (itemId: string, data: BlueprintData | null) => void;
   clearPrefetchedProduct: (itemId: string) => void;
+  isRefreshing: boolean;
+  isProcessing: boolean;
+  refreshPromise: Promise<void> | null;
+  processPromise: Promise<void> | null;
+  fetchAll: () => Promise<void>;
+  processWarehouse: () => Promise<void>;
 }
 
 const WarehouseContext = createContext<WarehouseContextType | undefined>(undefined);
@@ -28,33 +34,74 @@ interface WarehouseProviderProps {
 export const WarehouseProvider: React.FC<WarehouseProviderProps> = ({ children }) => {
   const [nameFilter, setNameFilter] = useState('');
   const [lastScrollPosition, setLastScrollPosition] = useState(0);
-  const [prefetchedProduct, setPrefetchedProducts] = useState<{ [key: string]: BlueprintData | null }>({});
+  const [prefetchedProducts] = useState<Record<string, BlueprintData | null>>({});
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [refreshPromise, setRefreshPromise] = useState<Promise<void> | null>(null);
+  const [processPromise, setProcessPromise] = useState<Promise<void> | null>(null);
 
   const setPrefetchedProduct = (itemId: string, data: BlueprintData | null) => {
-    setPrefetchedProducts(prev => ({
-      ...prev,
-      [itemId]: data
-    }));
+    prefetchedProducts[itemId] = data;
   };
 
   const clearPrefetchedProduct = (itemId: string) => {
-    setPrefetchedProducts(prev => {
-      const newState = { ...prev };
-      delete newState[itemId];
-      return newState;
+    delete prefetchedProducts[itemId];
+  };
+
+  const fetchAll = async () => {
+    if (isRefreshing) return refreshPromise;
+    
+    setIsRefreshing(true);
+    const promise = fetch('/api/data/fetch-all', {
+      method: 'POST',
+      credentials: 'include',
+    }).then(async (response) => {
+      if (!response.ok) throw new Error('Failed to refresh data');
+    }).finally(() => {
+      setIsRefreshing(false);
+      setRefreshPromise(null);
     });
+    
+    setRefreshPromise(promise);
+    return promise;
+  };
+
+  const processWarehouse = async () => {
+    if (isProcessing) return processPromise;
+    
+    setIsProcessing(true);
+    const promise = fetch('/api/warehouse/processAll', {
+      method: 'POST',
+      credentials: 'include',
+    }).then(async (response) => {
+      if (!response.ok) throw new Error('Failed to process warehouse data');
+    }).finally(() => {
+      setIsProcessing(false);
+      setProcessPromise(null);
+    });
+    
+    setProcessPromise(promise);
+    return promise;
   };
 
   return (
-    <WarehouseContext.Provider value={{
-      nameFilter,
-      setNameFilter,
-      lastScrollPosition,
-      setLastScrollPosition,
-      prefetchedProduct,
-      setPrefetchedProduct,
-      clearPrefetchedProduct,
-    }}>
+    <WarehouseContext.Provider
+      value={{
+        nameFilter,
+        setNameFilter,
+        lastScrollPosition,
+        setLastScrollPosition,
+        prefetchedProduct: prefetchedProducts,
+        setPrefetchedProduct,
+        clearPrefetchedProduct,
+        isRefreshing,
+        isProcessing,
+        refreshPromise,
+        processPromise,
+        fetchAll,
+        processWarehouse,
+      }}
+    >
       {children}
     </WarehouseContext.Provider>
   );

@@ -4,6 +4,7 @@ import {
   Refresh as RefreshIcon,
   PlayArrow as PlayArrowIcon,
 } from '@mui/icons-material';
+import { useWarehouse } from '../context/WarehouseContext';
 
 interface WalletBalance {
   division: number;
@@ -11,8 +12,13 @@ interface WalletBalance {
 }
 
 function Dashboard() {
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const { 
+    isRefreshing, 
+    isProcessing, 
+    fetchAll, 
+    processWarehouse 
+  } = useWarehouse();
+  
   const [stats, setStats] = useState<{
     totalOrders: Record<number, number>;
     totalSell: Record<number, number>;
@@ -54,37 +60,21 @@ function Dashboard() {
   }, []);
 
   const handleProcess = async () => {
-    if (isProcessing) return;
-    setIsProcessing(true);
     try {
-      const response = await fetch('/api/warehouse/processAll', {
-        method: 'POST',
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error('Failed to process warehouse data');
+      await processWarehouse();
       await fetchMarketSummary();
     } catch (error) {
       console.error('Error processing warehouse data:', error);
-    } finally {
-      setIsProcessing(false);
     }
   };
 
   const handleRefresh = async () => {
-    if (isRefreshing) return;
-    setIsRefreshing(true);
     try {
-      const response = await fetch('/api/data/fetch-all', {
-        method: 'POST',
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error('Failed to refresh data');
+      await fetchAll();
       await fetchMarketSummary();
       await fetchWalletBalances();
     } catch (error) {
       console.error('Error refreshing data:', error);
-    } finally {
-      setIsRefreshing(false);
     }
   };
 
