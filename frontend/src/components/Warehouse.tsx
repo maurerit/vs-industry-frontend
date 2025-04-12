@@ -169,7 +169,13 @@ export const Warehouse: React.FC = () => {
     }
   };
 
-  const handleRowClick = async (itemId: number) => {
+  const handleRowClick = async (e: React.MouseEvent, itemId: number) => {
+    // Check if the click was on an edit button or its parent cell
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('td:last-child')) {
+      return; // Don't navigate if clicking edit buttons or their container
+    }
+
     try {
       const response = await fetch(`/api/product/${itemId}`);
       if (response.ok) {
@@ -180,10 +186,8 @@ export const Warehouse: React.FC = () => {
         }
         navigate(`/product/${itemId}`);
       }
-      // If response is not ok (500 etc), do nothing
     } catch (error) {
       console.error('Error prefetching product:', error);
-      // If there's an error fetching, do nothing
     }
   };
 
@@ -353,7 +357,7 @@ export const Warehouse: React.FC = () => {
             {sortedItems.map((item) => (
               <TableRow 
                 key={item.itemId}
-                onClick={() => handleRowClick(item.itemId)}
+                onClick={(e) => handleRowClick(e, item.itemId)}
                 sx={{ 
                   cursor: 'pointer',
                   '&:hover': { backgroundColor: '#262626' }
