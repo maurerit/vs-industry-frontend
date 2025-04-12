@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Card, CardContent, Typography, Button, CircularProgress, Alert } from '@mui/material';
+import {
+  Refresh as RefreshIcon,
+  PlayArrow as PlayArrowIcon,
+} from '@mui/icons-material';
 
 interface WalletBalance {
   division: number;
@@ -95,6 +99,7 @@ function Dashboard() {
           variant="contained"
           onClick={handleRefresh}
           disabled={isRefreshing}
+          startIcon={isRefreshing ? <CircularProgress size={20} color="inherit" /> : <RefreshIcon />}
           sx={{
             bgcolor: '#ff0000', // Pure red
             '&:hover': {
@@ -103,6 +108,7 @@ function Dashboard() {
             '&:disabled': {
               bgcolor: '#ff0000',
               opacity: 0.7,
+              color: 'white', // Ensure text is visible when disabled
             },
           }}
         >
@@ -112,6 +118,7 @@ function Dashboard() {
           variant="contained"
           onClick={handleProcess}
           disabled={isProcessing}
+          startIcon={isProcessing ? <CircularProgress size={20} color="inherit" /> : <PlayArrowIcon />}
           sx={{
             bgcolor: '#2a2a2a', // Dark gray
             '&:hover': {
@@ -120,6 +127,7 @@ function Dashboard() {
             '&:disabled': {
               bgcolor: '#2a2a2a',
               opacity: 0.7,
+              color: 'white', // Ensure text is visible when disabled
             },
           }}
         >
