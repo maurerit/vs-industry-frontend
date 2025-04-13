@@ -59,6 +59,8 @@ export const Warehouse: React.FC = () => {
   const searchFieldRef = useRef<HTMLInputElement>(null);
   const editFieldRef = useRef<HTMLInputElement>(null);
 
+  const [filteredItems, setFilteredItems] = useState<InventoryItem[]>([]);
+
   useEffect(() => {
     fetchItems();
   }, []);
@@ -68,6 +70,22 @@ export const Warehouse: React.FC = () => {
       containerRef.current.scrollTop = lastScrollPosition;
     }
   }, [lastScrollPosition]);
+
+  useEffect(() => {
+    try {
+      const regex = new RegExp(nameFilter, 'i');
+      const filtered = items.filter(item => 
+        regex.test(item.name)
+      );
+      setFilteredItems(filtered);
+    } catch (e) {
+      // If the regex is invalid, fall back to simple string matching
+      const filtered = items.filter(item => 
+        item.name.toLowerCase().includes(nameFilter.toLowerCase())
+      );
+      setFilteredItems(filtered);
+    }
+  }, [items, nameFilter]);
 
   const fetchItems = async () => {
     try {
@@ -190,9 +208,9 @@ export const Warehouse: React.FC = () => {
     }
   };
 
-  const filteredItems = items.filter(item =>
-    item.name.toLowerCase().includes(nameFilter.toLowerCase())
-  );
+  const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setNameFilter(event.target.value);
+  };
 
   const sortedItems = [...filteredItems].sort((a, b) => {
     const aValue = a[sortOrder.field];
@@ -244,7 +262,7 @@ export const Warehouse: React.FC = () => {
           variant="outlined"
           placeholder="Filter by name..."
           value={nameFilter}
-          onChange={(e) => setNameFilter(e.target.value)}
+          onChange={handleFilterChange}
           inputRef={searchFieldRef}
           sx={{
             backgroundColor: '#1a1a1a',
