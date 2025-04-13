@@ -6,6 +6,7 @@ import SidePanel from './components/SidePanel';
 import { Dashboard } from './components/Dashboard';
 import { Warehouse } from './components/Warehouse';
 import { Product } from './pages/Product';
+import { Products } from './pages/Products';
 import { Profile } from './pages/Profile';
 import { Box } from '@mui/material';
 import { WarehouseProvider } from './context/WarehouseContext';
@@ -32,6 +33,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/warehouse" element={<Warehouse />} />
+                  <Route path="/products" element={<Products />} />
                   <Route path="/product/:id" element={<Product />} />
                   <Route path="/profile" element={<Profile />} />
                 </Routes>

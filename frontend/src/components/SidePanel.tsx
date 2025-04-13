@@ -15,6 +15,7 @@ import {
   Settings as SettingsIcon,
   AccountCircle as AccountIcon,
   Inventory as WarehouseIcon,
+  Build as ProductsIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -26,6 +27,7 @@ const SidePanel: React.FC = () => {
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'Warehouse', icon: <WarehouseIcon />, path: '/warehouse' },
+    { text: "Products", icon: <ProductsIcon />, path: '/products' },
     { text: 'Profile', icon: <AccountIcon />, path: '/profile' },
     { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
   ];
