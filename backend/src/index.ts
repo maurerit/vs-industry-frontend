@@ -4,6 +4,7 @@ import { EveSso } from './eveSso';
 import { Context, Next } from 'koa';
 import bodyParser from 'koa-bodyparser';
 import { config } from './config';
+import jwt from 'jsonwebtoken';
 
 const app = new Koa();
 const router = new Router();
@@ -158,6 +159,45 @@ router.post('/logout', async (ctx) => {
   });
 
   ctx.body = { success: true };
+});
+
+// Add the /me endpoint
+router.get('/me', async (ctx) => {
+  try {
+    const token = ctx.cookies.get('EVEJWT');
+    if (!token) {
+      ctx.status = 401;
+      ctx.body = { error: 'No token provided' };
+      return;
+    }
+
+    // Decode the JWT
+    const decoded = jwt.decode(token);
+    if (!decoded || typeof decoded === 'string') {
+      ctx.status = 401;
+      ctx.body = { error: 'Invalid token format' };
+      return;
+    }
+
+    // Extract character ID from sub claim (format: "CHARACTER:EVE:123456789")
+    const characterId = decoded.sub?.split(':')[2];
+    const characterName = decoded.name;
+
+    if (!characterId || !characterName) {
+      ctx.status = 401;
+      ctx.body = { error: 'Invalid token claims' };
+      return;
+    }
+
+    ctx.body = {
+      characterId,
+      characterName
+    };
+  } catch (error) {
+    console.error('Error in /me endpoint:', error);
+    ctx.status = 500;
+    ctx.body = { error: 'Internal server error' };
+  }
 });
 
 app.use(router.routes());

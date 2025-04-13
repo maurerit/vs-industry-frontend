@@ -1,140 +1,129 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Box, Button } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { AppBar, Toolbar, Typography, Button, Box, Menu, MenuItem, IconButton, Avatar } from '@mui/material';
+import { useCharacterInfo } from '../hooks/useCharacterInfo';
 
-const Header: React.FC = () => {
+export const Header: React.FC = () => {
+  const { characterInfo, isLoading, error } = useCharacterInfo();
   const [loginUrl, setLoginUrl] = useState<string>('');
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-
-  const refreshToken = useCallback(async () => {
-    try {
-      const response = await fetch('/js-api/auth/refresh', {
-        method: 'POST',
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        console.error('Token refresh failed:', response.status);
-        setIsLoggedIn(false);
-      }
-    } catch (error) {
-      console.error('Error refreshing token:', error);
-      setIsLoggedIn(false);
-    }
-  }, []);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
 
   useEffect(() => {
-    // Check for token expiry cookie and refresh if needed
-    const checkAuth = async () => {
-      const cookies = document.cookie.split(';').reduce((acc, cookie) => {
-        const [name, value] = cookie.trim().split('=');
-        acc[name] = value;
-        return acc;
-      }, {} as { [key: string]: string });
-
-      console.log('All cookies:', cookies);
-      const tokenExpiry = cookies['EVETokenExpiry'];
-      
-      if (tokenExpiry) {
-        const expiryDate = new Date(tokenExpiry);
-        const now = new Date();
-        const timeUntilExpiry = expiryDate.getTime() - now.getTime();
-        
-        // If token expires in less than 5 minutes (300000ms), refresh it
-        if (timeUntilExpiry > 0 && timeUntilExpiry < 300000) {
-          console.log('Token expiring soon, refreshing...');
-          await refreshToken();
-        }
-        
-        // Update login state based on token validity
-        const isValid = expiryDate > now;
-        if (isValid !== isLoggedIn) {
-          console.log('Updating login state from', isLoggedIn, 'to', isValid);
-          setIsLoggedIn(isValid);
-        }
-      } else if (isLoggedIn) {
-        setIsLoggedIn(false);
-      }
-    };
-
-    // Check auth on mount and every 30 seconds
-    checkAuth();
-    const interval = setInterval(checkAuth, 30000);
-
-    // Fetch login URL
+    // Fetch login URL when component mounts
     fetch('/js-api/login')
       .then(response => response.json())
       .then(data => setLoginUrl(data.loginUrl))
       .catch(error => console.error('Failed to fetch login URL:', error));
+  }, []);
 
-    return () => clearInterval(interval);
-  }, [isLoggedIn, refreshToken]);
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   const handleLogout = async () => {
     try {
       const response = await fetch('/js-api/logout', {
         method: 'POST',
-        credentials: 'include', // Important for cookies
+        credentials: 'include',
       });
-
-      if (!response.ok) {
-        throw new Error('Logout failed');
+      if (response.ok) {
+        window.location.href = '/';
       }
-
-      // Clear local state
-      setIsLoggedIn(false);
-      setLoginUrl('');
     } catch (error) {
-      console.error('Error during logout:', error);
+      console.error('Logout failed:', error);
     }
   };
 
-  console.log('Rendering with isLoggedIn:', isLoggedIn); // Debug log for render
-
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '1rem',
-        backgroundColor: '#1a1a1a',
-        color: 'white',
-      }}
-    >
-      <Box sx={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
-        EVE Industry
-      </Box>
-      {isLoggedIn ? (
-        <Button
-          onClick={handleLogout}
-          sx={{
-            color: 'white',
-            border: '1px solid white',
-            '&:hover': {
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            },
-          }}
-        >
-          Logout
-        </Button>
-      ) : (
-        <Button
-          component="a"
-          href={loginUrl}
-          sx={{
-            backgroundImage: 'url(https://web.ccpgamescdn.com/eveonlineassets/developers/eve-sso-login-white-small.png)',
-            backgroundSize: 'contain',
-            backgroundRepeat: 'no-repeat',
-            width: '200px',
-            height: '40px',
-            '&:hover': {
-              opacity: 0.8,
-            },
-          }}
-        />
-      )}
-    </Box>
+    <AppBar position="static" sx={{ bgcolor: '#1a1a1a' }}>
+      <Toolbar>
+        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          EVE Industry Dashboard
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {!isLoading && characterInfo && (
+            <>
+              <IconButton
+                onClick={handleClick}
+                size="small"
+                aria-controls={open ? 'account-menu' : undefined}
+                aria-haspopup="true"
+                aria-expanded={open ? 'true' : undefined}
+                sx={{
+                  padding: 0,
+                  '&:hover': {
+                    opacity: 0.8,
+                  },
+                }}
+              >
+                <Avatar
+                  src={`https://image.eveonline.com/Character/${characterInfo.characterId}_64.png`}
+                  alt={characterInfo.characterName}
+                  sx={{ 
+                    width: 40, 
+                    height: 40,
+                    border: '2px solid rgba(255, 255, 255, 0.2)',
+                  }}
+                />
+              </IconButton>
+              <Menu
+                id="account-menu"
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+                onClick={handleClose}
+                PaperProps={{
+                  sx: {
+                    bgcolor: '#1a1a1a',
+                    color: 'white',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
+                    mt: 1,
+                    '& .MuiMenuItem-root': {
+                      fontSize: '0.9rem',
+                      py: 1,
+                      px: 2,
+                      minWidth: 150,
+                      '&:hover': {
+                        bgcolor: 'rgba(255, 255, 255, 0.1)',
+                      },
+                    },
+                  },
+                }}
+                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+              >
+                <MenuItem sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                  {characterInfo.characterName}
+                </MenuItem>
+                <MenuItem onClick={handleLogout}>
+                  Logout
+                </MenuItem>
+              </Menu>
+            </>
+          )}
+          {!isLoading && !characterInfo && loginUrl && (
+            <Button
+              component="a"
+              href={loginUrl}
+              sx={{
+                backgroundImage: 'url(https://web.ccpgamescdn.com/eveonlineassets/developers/eve-sso-login-white-small.png)',
+                backgroundSize: 'contain',
+                backgroundRepeat: 'no-repeat',
+                width: '200px',
+                height: '40px',
+                '&:hover': {
+                  opacity: 0.8,
+                },
+              }}
+            />
+          )}
+        </Box>
+      </Toolbar>
+    </AppBar>
   );
-};
-
-export default Header; 
+}; 

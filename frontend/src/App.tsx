@@ -1,38 +1,47 @@
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Box } from '@mui/material';
-import Header from './components/Header';
+import { ThemeProvider, CssBaseline } from '@mui/material';
+import { darkTheme } from './theme';
+import { Header } from './components/Header';
 import SidePanel from './components/SidePanel';
-import { Warehouse } from './components/Warehouse';
 import { Dashboard } from './components/Dashboard';
+import { Warehouse } from './components/Warehouse';
 import { Product } from './pages/Product';
+import { Profile } from './pages/Profile';
+import { Box } from '@mui/material';
 import { WarehouseProvider } from './context/WarehouseContext';
 
 function App() {
   return (
-    <Router>
-      <WarehouseProvider>
-        <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: '#000000' }}>
-          <SidePanel />
-          <Box 
-            component="main" 
-            sx={{ 
-              flexGrow: 1, 
-              p: 3,
-              marginLeft: '240px', // Width of the sidebar
-              backgroundColor: '#000000',
-              minHeight: 'calc(100vh - 64px)', // Full height minus header
-            }}
-          >
+    <ThemeProvider theme={darkTheme}>
+      <CssBaseline />
+      <Router>
+        <WarehouseProvider>
+          <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             <Header />
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/warehouse" element={<Warehouse />} />
-              <Route path="/product/:itemId" element={<Product />} />
-            </Routes>
+            <Box sx={{ display: 'flex', flex: 1 }}>
+              <SidePanel />
+              <Box 
+                component="main" 
+                sx={{ 
+                  flex: 1, 
+                  p: 3, 
+                  overflow: 'auto',
+                  marginLeft: '240px', // Width of the SidePanel
+                }}
+              >
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/warehouse" element={<Warehouse />} />
+                  <Route path="/product/:id" element={<Product />} />
+                  <Route path="/profile" element={<Profile />} />
+                </Routes>
+              </Box>
+            </Box>
           </Box>
-        </Box>
-      </WarehouseProvider>
-    </Router>
+        </WarehouseProvider>
+      </Router>
+    </ThemeProvider>
   );
 }
 
