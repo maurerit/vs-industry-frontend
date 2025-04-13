@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useWarehouse } from '../context/WarehouseContext';
-import { BlueprintData } from '../types/blueprint';
-import {
-  Box,
-  Typography,
-  Paper,
+import { 
+  Box, 
+  Typography, 
+  Paper, 
   CircularProgress,
   Table,
   TableBody,
@@ -14,235 +12,246 @@ import {
   TableHead,
   TableRow,
   IconButton,
-  Tooltip,
+  Tooltip
 } from '@mui/material';
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
-
-interface Material {
-  typeid: number;
-  name: string;
-  quantity: number;
-  maketype: string | null;
-  price: number;
-}
+import { BlueprintData } from '../types/blueprint';
 
 export const Product: React.FC = () => {
-  const { itemId } = useParams<{ itemId: string }>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { prefetchedProduct, clearPrefetchedProduct } = useWarehouse();
-  const [loading, setLoading] = useState(true);
+  const [product, setProduct] = useState<BlueprintData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [blueprint, setBlueprint] = useState<BlueprintData | null>(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
-      if (!itemId) return;
-
-      // Check if we have prefetched data
-      if (prefetchedProduct[itemId]) {
-        setBlueprint(prefetchedProduct[itemId]);
-        setLoading(false);
-        // Clear the prefetched data after using it
-        clearPrefetchedProduct(itemId);
-        return;
-      }
-
       try {
-        setLoading(true);
-        const response = await fetch(`/api/product/${itemId}`);
+        setIsLoading(true);
+        setError(null);
+        
+        const response = await fetch(`/api/product/${id}`, {
+          credentials: 'include'
+        });
+
         if (!response.ok) {
           throw new Error('Failed to fetch product data');
         }
+
         const data = await response.json();
-        setBlueprint(data);
+        setProduct(data);
       } catch (error) {
         console.error('Error fetching product:', error);
-        setError(error instanceof Error ? error.message : 'Unknown error occurred');
+        setError(error instanceof Error ? error.message : 'Failed to load product');
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
-    fetchProduct();
-  }, [itemId, prefetchedProduct, clearPrefetchedProduct]);
+    if (id) {
+      fetchProduct();
+    }
+  }, [id]);
 
-  const handleBack = () => {
-    navigate('/warehouse');
-  };
-
-  const renderMaterialsTable = (materials: Material[], title: string) => {
-    if (!materials || materials.length === 0) return null;
-
-    const totalCost = materials.reduce(
-      (sum, material) => sum + ((material.price || 0) * material.quantity),
-      0
-    );
-
+  if (isLoading) {
     return (
-      <>
-        <Typography variant="h5" sx={{ mt: 4, mb: 2, color: 'white' }}>
-          {title}
-          {totalCost > 0 && (
-            <Typography component="span" sx={{ ml: 2, color: '#4caf50' }}>
-              (Total: {totalCost.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              })} ISK)
-            </Typography>
-          )}
-        </Typography>
-        
-        <TableContainer component={Paper} sx={{ backgroundColor: '#262626' }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ color: 'white' }}>Material</TableCell>
-                <TableCell align="right" sx={{ color: 'white' }}>Quantity</TableCell>
-                <TableCell align="right" sx={{ color: 'white' }}>Price per Unit</TableCell>
-                <TableCell align="right" sx={{ color: 'white' }}>Total Cost</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {materials.map((material) => (
-                <TableRow key={material.typeid}>
-                  <TableCell sx={{ color: 'white' }}>{material.name}</TableCell>
-                  <TableCell align="right" sx={{ color: 'white' }}>
-                    {material.quantity.toLocaleString()}
-                  </TableCell>
-                  <TableCell align="right" sx={{ color: 'white' }}>
-                    {material.price ? 
-                      `${material.price.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      })} ISK` : 
-                      'N/A'
-                    }
-                  </TableCell>
-                  <TableCell align="right" sx={{ color: 'white' }}>
-                    {material.price ? 
-                      `${(material.price * material.quantity).toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      })} ISK` : 
-                      'N/A'
-                    }
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </>
-    );
-  };
-
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
         <CircularProgress />
       </Box>
     );
   }
 
-  if (error) {
+  if (error || !product) {
     return (
-      <Box sx={{ color: 'error.main', p: 2 }}>
-        Error: {error}
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+        <Typography color="error">
+          {error || 'Product not found'}
+        </Typography>
       </Box>
     );
   }
-
-  if (!blueprint) {
-    return (
-      <Box sx={{ color: 'warning.main', p: 2 }}>
-        Blueprint not found
-      </Box>
-    );
-  }
-
-  const totalManufacturingCost = blueprint.activityMaterials.manufacturing.reduce(
-    (sum, material) => sum + ((material.price || 0) * material.quantity),
-    0
-  );
-
-  const totalInventionCost = blueprint.activityMaterials.invention.reduce(
-    (sum, material) => sum + ((material.price || 0) * material.quantity),
-    0
-  );
-
-  const pricePerUnit = blueprint.blueprintDetails.maxProductionLimit > 1 ? 
-    (totalManufacturingCost || totalInventionCost) / blueprint.blueprintDetails.maxProductionLimit : 
-    null;
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-        <Tooltip title="Back to Warehouse">
-          <IconButton 
-            onClick={handleBack}
-            sx={{ 
-              mr: 2,
-              color: 'white',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.08)'
-              }
-            }}
-          >
-            <ArrowBackIcon />
-          </IconButton>
-        </Tooltip>
-        <Typography variant="h4" sx={{ color: 'white' }}>
-          {blueprint.blueprintDetails.productTypeName}
+      <Tooltip title="Back to Warehouse">
+        <IconButton 
+          onClick={() => navigate('/warehouse')}
+          sx={{ 
+            mb: 2, 
+            color: 'white',
+            '&:hover': { 
+              backgroundColor: 'rgba(255, 255, 255, 0.1)' 
+            }
+          }}
+        >
+          <ArrowBackIcon />
+        </IconButton>
+      </Tooltip>
+      <Paper 
+        elevation={3} 
+        sx={{ 
+          p: 4,
+          bgcolor: 'rgba(26, 26, 26, 0.95)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: 2,
+          border: '1px solid rgba(255, 255, 255, 0.1)'
+        }}
+      >
+        <Typography variant="h4" component="h1" gutterBottom>
+          {product.blueprintDetails.productTypeName}
         </Typography>
-      </Box>
-
-      <Paper sx={{ p: 3, backgroundColor: '#1a1a1a', color: 'white' }}>
-        <Typography variant="h4" sx={{ mb: 3 }}>
-          {blueprint.blueprintDetails.productTypeName}
+        <Typography variant="body1" color="text.secondary" gutterBottom>
+          Product ID: {product.blueprintDetails.productTypeID}
         </Typography>
+        <Typography variant="body1" color="text.secondary" gutterBottom>
+          Max Production Limit: {product.blueprintDetails.maxProductionLimit}
+        </Typography>
+        {product.blueprintDetails.productQuantity && (
+          <Typography variant="body1" color="text.secondary" gutterBottom>
+            Product Quantity: {product.blueprintDetails.productQuantity}
+          </Typography>
+        )}
         
-        <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
-          <Paper sx={{ p: 2, backgroundColor: '#262626' }}>
-            <Typography variant="subtitle1" sx={{ color: 'white' }}>
-              Max Production Limit
+        {product.activityMaterials.invention.length === 0 && (
+          <>
+            <Typography variant="h5" sx={{ mt: 4, mb: 2 }}>
+              Manufacturing Materials
             </Typography>
-            <Typography variant="h5" sx={{ color: 'white' }}>
-              {blueprint.blueprintDetails.maxProductionLimit.toLocaleString()}
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ color: 'white' }}>Material</TableCell>
+                    <TableCell align="right" sx={{ color: 'white' }}>Quantity</TableCell>
+                    <TableCell align="right" sx={{ color: 'white' }}>Price</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {product.activityMaterials.manufacturing.map((material) => (
+                    <TableRow key={material.typeid}>
+                      <TableCell sx={{ color: 'white' }}>{material.name}</TableCell>
+                      <TableCell align="right" sx={{ color: 'white' }}>{material.quantity}</TableCell>
+                      <TableCell align="right" sx={{ color: 'white' }}>
+                        {material.price ? `${material.price.toLocaleString()} ISK` : '-'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Total Cost</TableCell>
+                    <TableCell />
+                    <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>
+                      {product.activityMaterials.manufacturing
+                        .reduce((total, material) => total + (material.price || 0) * material.quantity, 0)
+                        .toLocaleString()} ISK
+                    </TableCell>
+                  </TableRow>
+                  {product.blueprintDetails.maxProductionLimit > 1 && (
+                    <TableRow>
+                      <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Cost per Unit</TableCell>
+                      <TableCell />
+                      <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>
+                        {Math.round(product.activityMaterials.manufacturing
+                          .reduce((total, material) => total + (material.price || 0) * material.quantity, 0) 
+                          / product.blueprintDetails.maxProductionLimit)
+                          .toLocaleString()} ISK
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </>
+        )}
+
+        {product.activityMaterials.invention.length > 0 && (
+          <>
+            <Typography variant="h5" sx={{ mt: 4, mb: 2 }}>
+              Invention Materials
             </Typography>
-          </Paper>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ color: 'white' }}>Material</TableCell>
+                    <TableCell align="right" sx={{ color: 'white' }}>Quantity</TableCell>
+                    <TableCell align="right" sx={{ color: 'white' }}>Price</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {product.activityMaterials.invention.map((material) => (
+                    <TableRow key={material.typeid}>
+                      <TableCell sx={{ color: 'white' }}>{material.name}</TableCell>
+                      <TableCell align="right" sx={{ color: 'white' }}>{material.quantity}</TableCell>
+                      <TableCell align="right" sx={{ color: 'white' }}>
+                        {material.price ? `${material.price.toLocaleString()} ISK` : '-'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Total Cost</TableCell>
+                    <TableCell />
+                    <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>
+                      {product.activityMaterials.invention
+                        .reduce((total, material) => total + (material.price || 0) * material.quantity, 0)
+                        .toLocaleString()} ISK
+                    </TableCell>
+                  </TableRow>
+                  {product.blueprintDetails.maxProductionLimit > 1 && (
+                    <TableRow>
+                      <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Cost per Unit</TableCell>
+                      <TableCell />
+                      <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>
+                        {Math.round(product.activityMaterials.invention
+                          .reduce((total, material) => total + (material.price || 0) * material.quantity, 0) 
+                          / product.blueprintDetails.maxProductionLimit)
+                          .toLocaleString()} ISK
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </>
+        )}
 
-          {totalManufacturingCost > 0 && (
-            <Paper sx={{ p: 2, backgroundColor: '#262626' }}>
-              <Typography variant="subtitle1" sx={{ color: 'white' }}>
-                Total Material Cost
-              </Typography>
-              <Typography variant="h5" sx={{ color: 'white' }}>
-                {totalManufacturingCost.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2
-                })} ISK
-              </Typography>
-            </Paper>
-          )}
-
-          {pricePerUnit && (
-            <Paper sx={{ p: 2, backgroundColor: '#262626' }}>
-              <Typography variant="subtitle1" sx={{ color: 'white' }}>
-                Price Per Unit
-              </Typography>
-              <Typography variant="h5" sx={{ color: 'white' }}>
-                {pricePerUnit.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2
-                })} ISK
-              </Typography>
-            </Paper>
-          )}
-        </Box>
-
-        {renderMaterialsTable(blueprint.activityMaterials.manufacturing, 'Manufacturing Materials')}
-        {renderMaterialsTable(blueprint.activityMaterials.invention, 'Invention Materials')}
-        {renderMaterialsTable(blueprint.activityMaterials.copying, 'Copying Materials')}
+        {product.activityMaterials.copying.length > 0 && (
+          <>
+            <Typography variant="h5" sx={{ mt: 4, mb: 2 }}>
+              Copying Materials
+            </Typography>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ color: 'white' }}>Material</TableCell>
+                    <TableCell align="right" sx={{ color: 'white' }}>Quantity</TableCell>
+                    <TableCell align="right" sx={{ color: 'white' }}>Price</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {product.activityMaterials.copying.map((material) => (
+                    <TableRow key={material.typeid}>
+                      <TableCell sx={{ color: 'white' }}>{material.name}</TableCell>
+                      <TableCell align="right" sx={{ color: 'white' }}>{material.quantity}</TableCell>
+                      <TableCell align="right" sx={{ color: 'white' }}>
+                        {material.price ? `${material.price.toLocaleString()} ISK` : '-'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Total Cost</TableCell>
+                    <TableCell />
+                    <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>
+                      {product.activityMaterials.copying
+                        .reduce((total, material) => total + (material.price || 0) * material.quantity, 0)
+                        .toLocaleString()} ISK
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </>
+        )}
       </Paper>
     </Box>
   );
