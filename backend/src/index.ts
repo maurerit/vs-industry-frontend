@@ -99,7 +99,7 @@ router.post('/auth/refresh', async (ctx: Context) => {
     // Update cookies with new tokens
     ctx.cookies.set('EVEJWT', info.access_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // TODO: Change to true in production
       sameSite: 'lax',
       maxAge: info.expires_in * 1000
     });
@@ -108,7 +108,7 @@ router.post('/auth/refresh', async (ctx: Context) => {
     if (info.refresh_token) {
       ctx.cookies.set('EVERefresh', info.refresh_token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // TODO: Change to true in production
         sameSite: 'lax',
         maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
       });
@@ -116,7 +116,7 @@ router.post('/auth/refresh', async (ctx: Context) => {
 
     ctx.cookies.set('EVETokenExpiry', new Date(Date.now() + info.expires_in * 1000).toISOString(), {
       httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // TODO: Change to false in production
       sameSite: 'lax',
       maxAge: info.expires_in * 1000
     });
