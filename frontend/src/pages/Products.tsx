@@ -31,6 +31,7 @@ interface Product {
 interface ProductResponse {
   page: number;
   totalPages: number;
+  totalElements: number;
   content: Product[];
 }
 
@@ -41,18 +42,18 @@ export const Products: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
-  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
 
   const fetchProducts = async (page: number, pageSize: number) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/product?page=${page + 1}&pageSize=${pageSize}`);
+      const response = await fetch(`/api/product?page=${page}&pageSize=${pageSize}`);
       if (!response.ok) {
         throw new Error('Failed to fetch products');
       }
       const data: ProductResponse = await response.json();
       setProducts(data.content);
-      setTotalPages(data.totalPages);
+      setTotalElements(data.totalElements);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -157,7 +158,7 @@ export const Products: React.FC = () => {
 
       <TablePagination
         component="div"
-        count={totalPages * rowsPerPage}
+        count={totalElements}
         page={page}
         onPageChange={handleChangePage}
         rowsPerPage={rowsPerPage}
