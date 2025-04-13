@@ -48,8 +48,8 @@ export const WarehouseProvider: React.FC<WarehouseProviderProps> = ({ children }
     delete prefetchedProducts[itemId];
   };
 
-  const fetchAll = async () => {
-    if (isRefreshing) return refreshPromise;
+  const fetchAll = async (): Promise<void> => {
+    if (isRefreshing) return refreshPromise || Promise.resolve();
     
     setIsRefreshing(true);
     const promise = fetch('/api/data/fetch-all', {
@@ -66,8 +66,8 @@ export const WarehouseProvider: React.FC<WarehouseProviderProps> = ({ children }
     return promise;
   };
 
-  const processWarehouse = async () => {
-    if (isProcessing) return processPromise;
+  const processWarehouse = async (): Promise<void> => {
+    if (isProcessing) return processPromise || Promise.resolve();
     
     setIsProcessing(true);
     const promise = fetch('/api/warehouse/processAll', {

@@ -3,7 +3,7 @@ import { AppBar, Toolbar, Typography, Button, Box, Menu, MenuItem, IconButton, A
 import { useCharacterInfo } from '../hooks/useCharacterInfo';
 
 export const Header: React.FC = () => {
-  const { characterInfo, isLoading, error, refetch } = useCharacterInfo();
+  const { characterInfo, isLoading, refetch } = useCharacterInfo();
   const [loginUrl, setLoginUrl] = useState<string>('');
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);

@@ -22,7 +22,6 @@ import {
   Search as SearchIcon,
   Clear as ClearIcon,
   Save as SaveIcon,
-  Edit as EditIcon,
   Numbers as NumbersIcon,
   PriceChange as PriceChangeIcon,
 } from '@mui/icons-material';

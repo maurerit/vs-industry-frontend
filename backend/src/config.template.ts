@@ -11,11 +11,11 @@ export interface Config {
 
 export const config: Config = {
   eve: {
-    clientId: 'YOUR_CLIENT_ID',
-    secret: 'YOUR_CLIENT_SECRET',
-    callbackUri: 'http://localhost:5173/login/oauth2/code/eve'
+    clientId: process.env.EVE_CLIENT_ID || 'YOUR_CLIENT_ID',
+    secret: process.env.EVE_CLIENT_SECRET || 'YOUR_CLIENT_SECRET',
+    callbackUri: process.env.EVE_CALLBACK_URI || 'http://localhost:5173/login/oauth2/code/eve'
   },
   server: {
-    port: 3001
+    port: Number(process.env.SERVER_PORT) || 3001
   }
 }; 

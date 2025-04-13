@@ -1,5 +1,5 @@
 import Koa from 'koa';
-import Router from '@koa/router';
+import Router from 'koa-router';
 import { EveSso } from './eveSso';
 import { Context, Next } from 'koa';
 import bodyParser from 'koa-bodyparser';
@@ -19,7 +19,7 @@ const sso = new EveSso(config.eve.clientId, config.eve.secret, config.eve.callba
 app.use(bodyParser());
 
 // Login route
-router.get('/login', async (ctx) => {
+router.get('/login', async (ctx: Context) => {
   const state = 'my-state'; // In production, use a secure random string
   const scopes = [
     'esi-wallet.read_corporation_wallet.v1',
@@ -36,7 +36,7 @@ router.get('/login', async (ctx) => {
 });
 
 // SSO Callback route
-router.get('/login/oauth2/code/eve', async (ctx) => {
+router.get('/login/oauth2/code/eve', async (ctx: Context) => {
   const code = ctx.query.code as string;
   const state = ctx.query.state as string;
   
@@ -48,21 +48,21 @@ router.get('/login/oauth2/code/eve', async (ctx) => {
     // Set cookies
     ctx.cookies.set('EVEJWT', info.access_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // TODO: Change to true in production
       sameSite: 'lax',
       maxAge: info.expires_in * 1000 // Convert seconds to milliseconds
     });
 
     ctx.cookies.set('EVERefresh', info.refresh_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // TODO: Change to true in production
       sameSite: 'lax',
       maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
     });
 
     ctx.cookies.set('EVETokenExpiry', new Date(Date.now() + info.expires_in * 1000).toISOString(), {
       httpOnly: false, // Allow frontend to read this
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // TODO: Change to false in production
       sameSite: 'lax',
       maxAge: info.expires_in * 1000
     });
@@ -80,7 +80,7 @@ router.get('/login/oauth2/code/eve', async (ctx) => {
 });
 
 // Health check route
-router.get('/health', (ctx) => {
+router.get('/health', (ctx: Context) => {
   ctx.body = { status: 'ok' };
 });
 
@@ -135,25 +135,25 @@ router.post('/auth/refresh', async (ctx: Context) => {
 });
 
 // Logout route
-router.post('/logout', async (ctx) => {
+router.post('/logout', async (ctx: Context) => {
   // Clear all authentication cookies
   ctx.cookies.set('EVEJWT', '', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: false, // TODO: Change to true in production
     sameSite: 'lax',
     maxAge: 0 // Expire immediately
   });
 
   ctx.cookies.set('EVERefresh', '', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: false, // TODO: Change to true in production
     sameSite: 'lax',
     maxAge: 0 // Expire immediately
   });
 
   ctx.cookies.set('EVETokenExpiry', '', {
     httpOnly: false,
-    secure: process.env.NODE_ENV === 'production',
+    secure: false, // TODO: Change to true in production
     sameSite: 'lax',
     maxAge: 0 // Expire immediately
   });
@@ -162,7 +162,7 @@ router.post('/logout', async (ctx) => {
 });
 
 // Add the /me endpoint
-router.get('/me', async (ctx) => {
+router.get('/me', async (ctx: Context) => {
   try {
     const token = ctx.cookies.get('EVEJWT');
     if (!token) {

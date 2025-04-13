@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - java-backend
+      - js-backend
+
+  js-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - EVE_CLIENT_ID=${EVE_CLIENT_ID}
+      - EVE_CLIENT_SECRET=${EVE_CLIENT_SECRET}
+      - EVE_CALLBACK_URI=http://localhost/login/oauth2/code/eve
+      - PORT=3001
+    ports:
+      - "3001:3001"
+
+  java-backend:
+    image: maurerit/vs-industry-spring:v1
+    environment:
+      - EVE_CLIENT_ID=${EVE_CLIENT_ID}
+      - EVE_CLIENT_SECRET=${EVE_CLIENT_SECRET}
+      - EVE_CALLBACK_URI=http://localhost/login/oauth2/code/eve
+    ports:
+      - "8080:8080"
+    volumes:
+      - ${PWD}/config:/config
+      - ${PWD}/data:/data
+      - ${PWD}/vsindustry:/vsindustry  # Optional volume
+    restart: unless-stopped 
