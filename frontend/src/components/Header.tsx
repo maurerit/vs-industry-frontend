@@ -1,12 +1,55 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { AppBar, Toolbar, Typography, Button, Box, Menu, MenuItem, IconButton, Avatar } from '@mui/material';
 import { useCharacterInfo } from '../hooks/useCharacterInfo';
 
 export const Header: React.FC = () => {
-  const { characterInfo, isLoading, error } = useCharacterInfo();
+  const { characterInfo, isLoading, error, refetch } = useCharacterInfo();
   const [loginUrl, setLoginUrl] = useState<string>('');
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+
+  const checkAndRefreshToken = useCallback(async () => {
+    const expiryStr = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('EVETokenExpiry='))
+      ?.split('=')[1];
+
+    if (!expiryStr) return;
+
+    const expiry = new Date(decodeURIComponent(expiryStr));
+    const now = new Date();
+    
+    // If token expires in less than 5 minutes, refresh it
+    if (expiry.getTime() - now.getTime() < 5 * 60 * 1000) {
+      try {
+        const response = await fetch('/js-api/auth/refresh', {
+          method: 'POST',
+          credentials: 'include',
+        });
+        
+        if (response.ok) {
+          // Refetch character info after successful token refresh
+          refetch();
+        } else {
+          // If refresh fails, redirect to login
+          window.location.href = '/';
+        }
+      } catch (error) {
+        console.error('Failed to refresh token:', error);
+        window.location.href = '/';
+      }
+    }
+  }, [refetch]);
+
+  useEffect(() => {
+    // Check token expiration every 30 seconds
+    const intervalId = setInterval(checkAndRefreshToken, 30000);
+    
+    // Initial check
+    checkAndRefreshToken();
+
+    return () => clearInterval(intervalId);
+  }, [checkAndRefreshToken]);
 
   useEffect(() => {
     // Fetch login URL when component mounts

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface CharacterInfo {
   characterId: string;
@@ -10,28 +10,32 @@ export function useCharacterInfo() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchCharacterInfo = async () => {
-      try {
-        const response = await fetch('/js-api/me', {
-          credentials: 'include',
-        });
+  const fetchCharacterInfo = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const response = await fetch('/js-api/me', {
+        credentials: 'include',
+      });
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch character information');
-        }
-
-        const data = await response.json();
-        setCharacterInfo(data);
-      } catch (error) {
-        setError(error instanceof Error ? error.message : 'Failed to load character information');
-      } finally {
-        setIsLoading(false);
+      if (!response.ok) {
+        throw new Error('Failed to fetch character information');
       }
-    };
 
-    fetchCharacterInfo();
+      const data = await response.json();
+      setCharacterInfo(data);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to load character information');
+      setCharacterInfo(null);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  return { characterInfo, isLoading, error };
+  useEffect(() => {
+    fetchCharacterInfo();
+  }, [fetchCharacterInfo]);
+
+  return { characterInfo, isLoading, error, refetch: fetchCharacterInfo };
 } 
