@@ -75,7 +75,7 @@ export const Product: React.FC = () => {
     <Box sx={{ p: 3 }}>
       <Tooltip title="Back to Warehouse">
         <IconButton 
-          onClick={() => navigate('/warehouse')}
+          onClick={() => navigate(-1)}
           sx={{ 
             mb: 2, 
             color: 'white',
