@@ -131,8 +131,8 @@ export const Products: React.FC = () => {
           <TableHead>
             <TableRow>
               <TableCell>Name</TableCell>
-              <TableCell align="right">Cost</TableCell>
               <TableCell align="right">Description</TableCell>
+              <TableCell align="right">Cost</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -145,10 +145,10 @@ export const Products: React.FC = () => {
               >
                 <TableCell>{product.name}</TableCell>
                 <TableCell align="right">
-                  {product.cost.toLocaleString()} ISK
+                  {product.description || '-'}
                 </TableCell>
                 <TableCell align="right">
-                  {product.description || '-'}
+                  {product.cost.toLocaleString()} ISK
                 </TableCell>
               </TableRow>
             ))}
