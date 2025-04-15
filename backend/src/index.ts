@@ -1,7 +1,7 @@
 import Koa from 'koa';
 import Router from 'koa-router';
 import { EveSso } from './eveSso';
-import { Context, Next } from 'koa';
+import { Context } from 'koa';
 import bodyParser from 'koa-bodyparser';
 import { config } from './config';
 import jwt from 'jsonwebtoken';
@@ -17,6 +17,12 @@ const sso = new EveSso(config.eve.clientId, config.eve.secret, config.eve.callba
 
 // Middleware
 app.use(bodyParser());
+
+interface JwtPayload {
+  sub: string;
+  name: string;
+  [key: string]: any;
+}
 
 // Login route
 router.get('/login', async (ctx: Context) => {
@@ -171,9 +177,27 @@ router.get('/me', async (ctx: Context) => {
       return;
     }
 
-    // Decode the JWT
-    const decoded = jwt.decode(token);
-    if (!decoded || typeof decoded === 'string') {
+    // Verify the JWT token
+    const decoded = await new Promise<JwtPayload>((resolve, reject) => {
+      jwt.verify(
+        token,
+        (header: any, callback: any) => {
+          sso['jwks'].getSigningKey(header.kid, (err: any, key: any) => {
+            if (err) return callback(err);
+            callback(null, key.getPublicKey());
+          });
+        },
+        {
+          issuer: ['https://login.eveonline.com', 'login.eveonline.com']
+        },
+        (err: any, decoded: any) => {
+          if (err) return reject(new Error(`JWT verification failed: ${err.message}`));
+          resolve(decoded as JwtPayload);
+        }
+      );
+    });
+
+    if (!decoded) {
       ctx.status = 401;
       ctx.body = { error: 'Invalid token format' };
       return;
@@ -195,8 +219,8 @@ router.get('/me', async (ctx: Context) => {
     };
   } catch (error) {
     console.error('Error in /me endpoint:', error);
-    ctx.status = 500;
-    ctx.body = { error: 'Internal server error' };
+    ctx.status = 401;
+    ctx.body = { error: 'Invalid token' };
   }
 });
 
