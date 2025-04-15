@@ -24,7 +24,7 @@ services:
       - "3001:3001"
 
   java-backend:
-    image: maurerit/vs-industry-spring:v1
+    image: maurerit/vs-industry-spring:1.0.19
     environment:
       - EVE_CLIENT_ID=${EVE_CLIENT_ID}
       - EVE_CLIENT_SECRET=${EVE_CLIENT_SECRET}
