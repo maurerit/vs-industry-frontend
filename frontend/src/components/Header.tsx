@@ -19,9 +19,10 @@ export const Header: React.FC = () => {
 
     const expiry = new Date(decodeURIComponent(expiryStr));
     const now = new Date();
+    const timeUntilExpiry = expiry.getTime() - now.getTime();
     
-    // If token expires in less than 5 minutes, refresh it
-    if (expiry.getTime() - now.getTime() < 5 * 60 * 1000) {
+    // If token is already expired or will expire in less than 25 minutes, refresh it
+    if (timeUntilExpiry < 5 * 60 * 1000) {
       try {
         const response = await fetch('/js-api/auth/refresh', {
           method: 'POST',
@@ -30,7 +31,7 @@ export const Header: React.FC = () => {
         
         if (response.ok) {
           // Refetch character info after successful token refresh
-          refetch();
+          await refetch();
         } else {
           // If refresh fails, redirect to login
           window.location.href = '/';
