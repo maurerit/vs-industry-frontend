@@ -6,12 +6,15 @@ import SidePanel from './components/SidePanel';
 import { Dashboard } from './components/Dashboard';
 import { Warehouse } from './components/Warehouse';
 import { Product } from './pages/Product';
-import { Products } from './pages/Products';
-import { Profile } from './pages/Profile';
+import { Products } from './components/Products.tsx';
+import { Profile } from './components/Profile.tsx';
 import { Box } from '@mui/material';
 import { WarehouseProvider } from './context/WarehouseContext';
+import { useState } from 'react';
 
 function App() {
+  const [isCollapsed, setIsCollapsed] = useState(true);
+
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
@@ -20,14 +23,21 @@ function App() {
           <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             <Header />
             <Box sx={{ display: 'flex', flex: 1 }}>
-              <SidePanel />
+              <SidePanel isCollapsed={isCollapsed} onCollapse={setIsCollapsed} />
               <Box 
                 component="main" 
                 sx={{ 
                   flex: 1, 
                   p: 3, 
                   overflow: 'auto',
-                  marginLeft: '240px', // Width of the SidePanel
+                  transition: theme => theme.transitions.create('margin-left', {
+                    easing: theme.transitions.easing.sharp,
+                    duration: theme.transitions.duration.enteringScreen,
+                  }),
+                  marginLeft: { 
+                    xs: 0, 
+                    sm: isCollapsed ? '64px' : '240px'
+                  },
                 }}
               >
                 <Routes>

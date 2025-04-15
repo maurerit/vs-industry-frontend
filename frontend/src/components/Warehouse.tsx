@@ -192,6 +192,10 @@ export const Warehouse: React.FC = () => {
     if (target.closest('button') || target.closest('td:last-child')) {
       return; // Don't navigate if clicking edit buttons or their container
     }
+    
+    if(editingItem?.itemId === itemId) {
+      return;
+    }
 
     try {
       const response = await fetch(`/api/product/${itemId}`);
@@ -238,7 +242,7 @@ export const Warehouse: React.FC = () => {
   }
 
   return (
-    <Box ref={containerRef} sx={{ height: 'calc(100vh - 128px)', overflow: 'auto' }}>
+    <Box ref={containerRef} sx={{ pr: 3, height: 'calc(100vh - 128px)', overflow: 'auto' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" sx={{ color: 'white' }}>
           Warehouse Inventory
@@ -375,7 +379,7 @@ export const Warehouse: React.FC = () => {
               <TableRow 
                 key={item.itemId}
                 onClick={(e) => handleRowClick(e, item.itemId)}
-                sx={{ 
+                sx={{
                   cursor: 'pointer',
                   '&:hover': { backgroundColor: '#262626' }
                 }}

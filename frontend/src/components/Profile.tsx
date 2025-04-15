@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, Paper, CircularProgress } from '@mui/material';
-import { useCharacterInfo } from '../hooks/useCharacterInfo';
+import { useCharacterInfo } from '../hooks/useCharacterInfo.ts';
 
 interface CharacterEsiData {
   corporation_id: number;
