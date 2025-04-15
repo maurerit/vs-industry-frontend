@@ -17,10 +17,10 @@ import {
   Dashboard as DashboardIcon,
   Inventory as InventoryIcon,
   ShoppingCart as ShoppingCartIcon,
-  Person as PersonIcon,
   Menu as MenuIcon,
   ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon
+  ChevronRight as ChevronRightIcon,
+  AdminPanelSettings as AdminIcon
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -50,7 +50,7 @@ const SidePanel: React.FC<SidePanelProps> = ({ isCollapsed, onCollapse }) => {
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'Warehouse', icon: <InventoryIcon />, path: '/warehouse' },
     { text: 'Products', icon: <ShoppingCartIcon />, path: '/products' },
-    { text: 'Profile', icon: <PersonIcon />, path: '/profile' },
+    { text: 'Admin', icon: <AdminIcon />, path: '/admin' },
   ];
 
   const drawer = (

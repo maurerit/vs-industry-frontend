@@ -8,6 +8,9 @@ import { Warehouse } from './components/Warehouse';
 import { Product } from './pages/Product';
 import { Products } from './components/Products.tsx';
 import { Profile } from './components/Profile.tsx';
+import Admin from './pages/Admin';
+import Users from './pages/Users';
+import UserCreate from './pages/UserCreate';
 import { Box } from '@mui/material';
 import { WarehouseProvider } from './context/WarehouseContext';
 import { useState } from 'react';
@@ -46,6 +49,9 @@ function App() {
                   <Route path="/products" element={<Products />} />
                   <Route path="/product/:id" element={<Product />} />
                   <Route path="/profile" element={<Profile />} />
+                  <Route path="/admin" element={<Admin />} />
+                  <Route path="/admin/users" element={<Users />} />
+                  <Route path="/admin/users/new" element={<UserCreate />} />
                 </Routes>
               </Box>
             </Box>

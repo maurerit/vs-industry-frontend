@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { AppBar, Toolbar, Typography, Button, Box, Menu, MenuItem, IconButton, Avatar } from '@mui/material';
 import { useCharacterInfo } from '../hooks/useCharacterInfo';
+import { Link } from 'react-router-dom';
 
 export const Header: React.FC = () => {
   const { characterInfo, isLoading, refetch } = useCharacterInfo();
@@ -140,7 +141,10 @@ export const Header: React.FC = () => {
                 transformOrigin={{ horizontal: 'right', vertical: 'top' }}
                 anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
               >
-                <MenuItem sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                <MenuItem 
+                  component={Link}
+                  to="/profile"
+                >
                   {characterInfo.characterName}
                 </MenuItem>
                 <MenuItem onClick={handleLogout}>
