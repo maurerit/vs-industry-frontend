@@ -32,7 +32,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ${PWD}/config:/config
-      - ${PWD}/data:/data
-      - ${PWD}/vsindustry:/vsindustry  # Optional volume
+      - ${PWD}/config:/app/config
+      - ${PWD}/data:/app/data
+      - ${PWD}/vsindustry:/app/vsindustry  # Optional volume
     restart: unless-stopped 

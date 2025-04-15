@@ -39,22 +39,16 @@ const Users: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
-  const [loading, setLoading] = useState(true);
 
   const fetchUsers = async (page: number, size: number) => {
     try {
-      setLoading(true);
       const response = await fetch(`/api/user?page=${page}&pageSize=${size}`);
       const data: UserResponse = await response.json();
       setUsers(data.content);
-      setTotalPages(data.totalPages);
       setTotalElements(data.totalElements);
     } catch (error) {
       console.error('Error fetching users:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -62,7 +56,7 @@ const Users: React.FC = () => {
     fetchUsers(page, rowsPerPage);
   }, [page, rowsPerPage]);
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
   };
 

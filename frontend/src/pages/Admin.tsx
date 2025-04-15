@@ -12,7 +12,18 @@ const Admin: React.FC = () => {
         Admin Dashboard
       </Typography>
       <Grid container spacing={3}>
-        <Grid item xs={12} sm={6} md={4}>
+        <Box
+          sx={{
+            width: '100%',
+            '@media (min-width:600px)': {
+              width: '50%',
+            },
+            '@media (min-width:900px)': {
+              width: '33.33%',
+            },
+            p: 1,
+          }}
+        >
           <Card 
             sx={{ 
               height: '100%',
@@ -39,7 +50,7 @@ const Admin: React.FC = () => {
               </CardContent>
             </CardActionArea>
           </Card>
-        </Grid>
+        </Box>
       </Grid>
     </Box>
   );

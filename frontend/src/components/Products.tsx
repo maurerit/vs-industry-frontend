@@ -17,7 +17,8 @@ import {
   FormControl,
   InputLabel,
   IconButton,
-  Tooltip
+  Tooltip,
+  SelectChangeEvent
 } from '@mui/material';
 import { Settings as SettingsIcon } from '@mui/icons-material';
 
@@ -65,11 +66,16 @@ export const Products: React.FC = () => {
     fetchProducts(page, rowsPerPage);
   }, [page, rowsPerPage]);
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRowsPerPage = (event: SelectChangeEvent<number>) => {
+    setRowsPerPage(Number(event.target.value));
+    setPage(0);
+  };
+
+  const handleTablePaginationRowsPerPageChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
@@ -162,7 +168,7 @@ export const Products: React.FC = () => {
         page={page}
         onPageChange={handleChangePage}
         rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
+        onRowsPerPageChange={handleTablePaginationRowsPerPageChange}
         rowsPerPageOptions={[10, 20, 50, 100]}
       />
     </Box>
