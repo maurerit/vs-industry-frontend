@@ -44,7 +44,6 @@ router.get('/login', async (ctx: Context) => {
 // SSO Callback route
 router.get('/login/oauth2/code/eve', async (ctx: Context) => {
   const code = ctx.query.code as string;
-  const state = ctx.query.state as string;
   
   // TODO: Validate state in production
   
@@ -177,26 +176,8 @@ router.get('/me', async (ctx: Context) => {
       return;
     }
 
-    // Verify the JWT token
-    const decoded = await new Promise<JwtPayload>((resolve, reject) => {
-      jwt.verify(
-        token,
-        (header: any, callback: any) => {
-          sso['jwks'].getSigningKey(header.kid, (err: any, key: any) => {
-            if (err) return callback(err);
-            callback(null, key.getPublicKey());
-          });
-        },
-        {
-          issuer: ['https://login.eveonline.com', 'login.eveonline.com']
-        },
-        (err: any, decoded: any) => {
-          if (err) return reject(new Error(`JWT verification failed: ${err.message}`));
-          resolve(decoded as JwtPayload);
-        }
-      );
-    });
-
+    // Decode the JWT token without verification
+    const decoded = jwt.decode(token) as JwtPayload;
     if (!decoded) {
       ctx.status = 401;
       ctx.body = { error: 'Invalid token format' };

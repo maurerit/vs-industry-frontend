@@ -20,7 +20,8 @@ import {
   Menu as MenuIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
-  AdminPanelSettings as AdminIcon
+  AdminPanelSettings as AdminIcon,
+  Category as CategoryIcon
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -50,6 +51,7 @@ const SidePanel: React.FC<SidePanelProps> = ({ isCollapsed, onCollapse }) => {
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'Warehouse', icon: <InventoryIcon />, path: '/warehouse' },
     { text: 'Products', icon: <ShoppingCartIcon />, path: '/products' },
+    { text: 'Items', icon: <CategoryIcon />, path: '/items' },
     { text: 'Admin', icon: <AdminIcon />, path: '/admin' },
   ];
 

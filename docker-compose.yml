@@ -29,6 +29,7 @@ services:
       - EVE_CLIENT_ID=${EVE_CLIENT_ID}
       - EVE_CLIENT_SECRET=${EVE_CLIENT_SECRET}
       - EVE_CALLBACK_URI=http://localhost/login/oauth2/code/eve
+      - CORPORATION_ID=${CORPORATION_ID}
     ports:
       - "8080:8080"
     volumes:

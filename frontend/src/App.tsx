@@ -11,6 +11,9 @@ import { Profile } from './components/Profile.tsx';
 import Admin from './pages/Admin';
 import Users from './pages/Users';
 import UserCreate from './pages/UserCreate';
+import Items from './pages/Items';
+import Item from './pages/Item';
+import ExtraCost from './pages/ExtraCost';
 import { Box } from '@mui/material';
 import { WarehouseProvider } from './context/WarehouseContext';
 import { useState } from 'react';
@@ -52,6 +55,9 @@ function App() {
                   <Route path="/admin" element={<Admin />} />
                   <Route path="/admin/users" element={<Users />} />
                   <Route path="/admin/users/new" element={<UserCreate />} />
+                  <Route path="/items" element={<Items />} />
+                  <Route path="/item/:itemId" element={<Item />} />
+                  <Route path="/admin/extracost" element={<ExtraCost />} />
                 </Routes>
               </Box>
             </Box>
