@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogTitle,
@@ -12,17 +13,18 @@ import {
 import { debounce } from 'lodash';
 
 interface BlueprintOption {
-  typeID: string;
-  typeName: string;
+  id: string;
+  label: string;
+  value: string;
 }
 
 interface AddProductDialogProps {
   open: boolean;
   onClose: () => void;
-  onAdd: (typeID: string, typeName: string) => void;
 }
 
-const AddProductDialog: React.FC<AddProductDialogProps> = ({ open, onClose, onAdd }) => {
+const AddProductDialog: React.FC<AddProductDialogProps> = ({ open, onClose }) => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [options, setOptions] = useState<BlueprintOption[]>([]);
   const [loading, setLoading] = useState(false);
@@ -36,7 +38,10 @@ const AddProductDialog: React.FC<AddProductDialogProps> = ({ open, onClose, onAd
 
     setLoading(true);
     try {
-      const response = await fetch(`https://www.fuzzwork.co.uk/blueprint/api/blueprintName.php?term=${encodeURIComponent(term)}`);
+      const response = await fetch(`/js-api/blueprint/api/blueprintName.php?term=${encodeURIComponent(term)}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch blueprint options');
+      }
       const data = await response.json();
       setOptions(data);
     } catch (error) {
@@ -58,7 +63,8 @@ const AddProductDialog: React.FC<AddProductDialogProps> = ({ open, onClose, onAd
 
   const handleAdd = () => {
     if (selectedOption) {
-      onAdd(selectedOption.typeID, selectedOption.typeName);
+      // Navigate to ConfigureProduct with the selected type ID
+      navigate(`/configure-product/${selectedOption.id}`);
       setSelectedOption(null);
       setSearchTerm('');
       onClose();
@@ -71,7 +77,7 @@ const AddProductDialog: React.FC<AddProductDialogProps> = ({ open, onClose, onAd
       <DialogContent>
         <Autocomplete
           options={options}
-          getOptionLabel={(option) => option.typeName}
+          getOptionLabel={(option) => option.label || option.value}
           loading={loading}
           value={selectedOption}
           onChange={(_, newValue) => setSelectedOption(newValue)}
@@ -104,7 +110,7 @@ const AddProductDialog: React.FC<AddProductDialogProps> = ({ open, onClose, onAd
           color="primary"
           disabled={!selectedOption}
         >
-          Add
+          Configure
         </Button>
       </DialogActions>
     </Dialog>

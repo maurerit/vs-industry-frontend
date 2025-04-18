@@ -129,6 +129,7 @@ export const Products: React.FC = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Button
             variant="contained"
+            color="primary"
             startIcon={<AddIcon />}
             onClick={() => setIsAddDialogOpen(true)}
           >
@@ -218,7 +219,6 @@ export const Products: React.FC = () => {
       <AddProductDialog
         open={isAddDialogOpen}
         onClose={() => setIsAddDialogOpen(false)}
-        onAdd={handleAddProduct}
       />
     </Box>
   );
