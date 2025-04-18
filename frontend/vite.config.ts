@@ -7,14 +7,14 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8081',
+        target: 'http://localhost:8080',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       },
       '/js-api/blueprint': {
         target: 'https://www.fuzzwork.co.uk/',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/js-api/, '')
+        rewrite: (path) => path.replace(/^\/js-api\/blueprint/, '')
       },
       '/js-api': {
         target: 'http://localhost:3001',

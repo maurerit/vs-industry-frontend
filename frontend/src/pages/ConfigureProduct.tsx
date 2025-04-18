@@ -76,7 +76,7 @@ const ConfigureProduct: React.FC = () => {
     const fetchBlueprint = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/js-api/blueprint/api/blueprint.php?typeid=${typeId}`);
+        const response = await fetch(`/js-api/blueprint/blueprint/api/blueprint.php?typeid=${typeId}`);
         if (!response.ok) {
           throw new Error('Failed to fetch blueprint data');
         }

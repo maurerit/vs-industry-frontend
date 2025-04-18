@@ -38,7 +38,7 @@ const AddProductDialog: React.FC<AddProductDialogProps> = ({ open, onClose }) =>
 
     setLoading(true);
     try {
-      const response = await fetch(`/js-api/blueprint/api/blueprintName.php?term=${encodeURIComponent(term)}`);
+      const response = await fetch(`/js-api/blueprint/blueprint/api/blueprintName.php?term=${encodeURIComponent(term)}`);
       if (!response.ok) {
         throw new Error('Failed to fetch blueprint options');
       }
