@@ -4,11 +4,11 @@ import { ThemeProvider, CssBaseline, Box } from '@mui/material';
 import { darkTheme } from './theme';
 import { Header } from './components/Header';
 import SidePanel from './components/SidePanel';
-import { Dashboard } from './components/Dashboard';
-import { Warehouse } from './components/Warehouse';
+import { Dashboard } from './pages/Dashboard.tsx';
+import { Warehouse } from './pages/Warehouse.tsx';
 import { Product } from './pages/Product';
-import { Products } from './components/Products.tsx';
-import { Profile } from './components/Profile.tsx';
+import { Products } from './pages/Products.tsx';
+import { Profile } from './pages/Profile.tsx';
 import Admin from './pages/Admin';
 import Users from './pages/Users';
 import UserCreate from './pages/UserCreate';
@@ -17,7 +17,8 @@ import Item from './pages/Item';
 import ExtraCost from './pages/ExtraCost';
 import MarketOrders from './pages/MarketOrders';
 import { WarehouseProvider } from './context/WarehouseContext';
-import EntryPage from './components/EntryPage';
+import EntryPage from './pages/EntryPage.tsx';
+import ConfigureProduct from './pages/ConfigureProduct';
 
 const App: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(true);
@@ -74,6 +75,7 @@ const App: React.FC = () => {
                     <Route path="/" element={<Dashboard />} />
                     <Route path="/warehouse" element={<Warehouse />} />
                     <Route path="/products" element={<Products />} />
+                    <Route path="/configure-product/:typeId" element={<ConfigureProduct />} />
                     <Route path="/product/:id" element={<Product />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/admin" element={<Admin />} />

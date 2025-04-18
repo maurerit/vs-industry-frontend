@@ -18,9 +18,11 @@ import {
   InputLabel,
   IconButton,
   Tooltip,
-  SelectChangeEvent
+  SelectChangeEvent,
+  Button
 } from '@mui/material';
-import { Settings as SettingsIcon } from '@mui/icons-material';
+import { Settings as SettingsIcon, Add as AddIcon } from '@mui/icons-material';
+import AddProductDialog from '../components/AddProductDialog.tsx';
 
 interface Product {
   itemId: number;
@@ -44,6 +46,7 @@ export const Products: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
   const [totalElements, setTotalElements] = useState(0);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   const fetchProducts = async (page: number, pageSize: number) => {
     try {
@@ -80,6 +83,27 @@ export const Products: React.FC = () => {
     setPage(0);
   };
 
+  const handleAddProduct = async (blueprintId: string) => {
+    try {
+      const response = await fetch('/api/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ blueprintId }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add product');
+      }
+
+      // Refresh the products list
+      fetchProducts(page, rowsPerPage);
+    } catch (error) {
+      console.error('Error adding product:', error);
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -103,6 +127,13 @@ export const Products: React.FC = () => {
           Products
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setIsAddDialogOpen(true)}
+          >
+            Add Product
+          </Button>
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <InputLabel>Page Size</InputLabel>
             <Select
@@ -182,6 +213,12 @@ export const Products: React.FC = () => {
         rowsPerPage={rowsPerPage}
         onRowsPerPageChange={handleTablePaginationRowsPerPageChange}
         rowsPerPageOptions={[10, 20, 50, 100]}
+      />
+
+      <AddProductDialog
+        open={isAddDialogOpen}
+        onClose={() => setIsAddDialogOpen(false)}
+        onAdd={handleAddProduct}
       />
     </Box>
   );

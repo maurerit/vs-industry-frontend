@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useWarehouse } from '../context/WarehouseContext';
+import { useWarehouse } from '../context/WarehouseContext.tsx';
 import {
   Box,
   Paper,

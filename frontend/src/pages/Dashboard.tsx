@@ -4,7 +4,7 @@ import {
   Refresh as RefreshIcon,
   PlayArrow as PlayArrowIcon,
 } from '@mui/icons-material';
-import { useWarehouse } from '../context/WarehouseContext';
+import { useWarehouse } from '../context/WarehouseContext.tsx';
 
 interface WalletBalance {
   division: number;
