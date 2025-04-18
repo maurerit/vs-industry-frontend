@@ -83,27 +83,6 @@ export const Products: React.FC = () => {
     setPage(0);
   };
 
-  const handleAddProduct = async (blueprintId: string) => {
-    try {
-      const response = await fetch('/api/products', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ blueprintId }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to add product');
-      }
-
-      // Refresh the products list
-      fetchProducts(page, rowsPerPage);
-    } catch (error) {
-      console.error('Error adding product:', error);
-    }
-  };
-
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -133,7 +112,7 @@ export const Products: React.FC = () => {
             startIcon={<AddIcon />}
             onClick={() => setIsAddDialogOpen(true)}
           >
-            Add Product
+            Configure Product
           </Button>
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <InputLabel>Page Size</InputLabel>
