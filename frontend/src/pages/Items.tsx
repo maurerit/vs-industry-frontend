@@ -196,6 +196,7 @@ const Items: React.FC = () => {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell>Icon</TableCell>
               <TableCell>Name</TableCell>
               <TableCell>Description</TableCell>
             </TableRow>
@@ -212,6 +213,17 @@ const Items: React.FC = () => {
                   }
                 }}
               >
+                <TableCell>
+                  <img 
+                    src={`https://images.evetech.net/types/${item.itemId}/icon`} 
+                    alt={item.name}
+                    style={{ width: 32, height: 32 }}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
+                </TableCell>
                 <TableCell>{item.name}</TableCell>
                 <TableCell sx={{ whiteSpace: 'pre-line' }}>
                   {parseDescription(item.description)}

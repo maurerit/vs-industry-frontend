@@ -311,6 +311,7 @@ export const Warehouse: React.FC = () => {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell sx={{ color: 'white' }}>Icon</TableCell>
               <TableCell sx={{ color: 'white' }}>
                 <TableSortLabel
                   active={sortOrder.field === 'name'}
@@ -384,6 +385,17 @@ export const Warehouse: React.FC = () => {
                   '&:hover': { backgroundColor: '#262626' }
                 }}
               >
+                <TableCell sx={{ color: 'white' }}>
+                  <img 
+                    src={`https://images.evetech.net/types/${item.itemId}/icon`} 
+                    alt={item.name}
+                    style={{ width: 32, height: 32 }}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
+                </TableCell>
                 <TableCell sx={{ color: 'white' }}>{item.name}</TableCell>
                 <TableCell align="right" sx={{ color: 'white' }}>
                   {editingItem?.itemId === item.itemId && editingItem.field === 'quantity' ? (

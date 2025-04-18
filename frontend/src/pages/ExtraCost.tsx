@@ -15,9 +15,11 @@ import {
   TextField,
   Tooltip,
   Button,
-  Autocomplete
+  Autocomplete,
+  ListItem,
+  ListItemIcon,
+  ListItemText
 } from '@mui/material';
-import { Link } from 'react-router-dom';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -222,6 +224,21 @@ const ExtraCost: React.FC = () => {
     }
   };
 
+  const renderItemWithIcon = (item: { itemId: number; name: string }) => (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <img
+        src={`https://images.evetech.net/types/${item.itemId}/icon`}
+        alt={item.name}
+        style={{ width: 32, height: 32 }}
+        onError={(e) => {
+          const target = e.target as HTMLImageElement;
+          target.style.display = 'none';
+        }}
+      />
+      <Typography>{item.name}</Typography>
+    </Box>
+  );
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -254,92 +271,82 @@ const ExtraCost: React.FC = () => {
         </Button>
       </Box>
 
-      <TableContainer component={Paper} sx={{ mb: 2 }}>
+      {isAddingNew && (
+        <Paper sx={{ p: 2, mb: 3 }}>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Autocomplete
+              sx={{ flex: 1 }}
+              options={searchResults}
+              getOptionLabel={(option) => option.name}
+              value={selectedItem}
+              onChange={(_event, newValue) => setSelectedItem(newValue)}
+              onInputChange={(_event, newInputValue) => setNewItemSearch(newInputValue)}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Search Item"
+                  variant="outlined"
+                  fullWidth
+                />
+              )}
+              renderOption={(props, option) => (
+                <ListItem {...props}>
+                  <ListItemIcon>
+                    <img
+                      src={`https://images.evetech.net/types/${option.itemId}/icon`}
+                      alt={option.name}
+                      style={{ width: 32, height: 32 }}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  </ListItemIcon>
+                  <ListItemText primary={option.name} />
+                </ListItem>
+              )}
+              loading={searching}
+            />
+            <TextField
+              label="Cost"
+              variant="outlined"
+              value={newItemCost}
+              onChange={(e) => setNewItemCost(e.target.value)}
+              sx={{ width: 200 }}
+            />
+            <Button
+              variant="contained"
+              startIcon={<SaveIcon />}
+              onClick={handleSaveNew}
+              disabled={savingId === -1}
+            >
+              Save
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<CancelIcon />}
+              onClick={handleCancelNew}
+            >
+              Cancel
+            </Button>
+          </Box>
+        </Paper>
+      )}
+
+      <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Item Name</TableCell>
+              <TableCell>Item</TableCell>
               <TableCell align="right">Cost</TableCell>
-              <TableCell align="center" width={100}>Actions</TableCell>
+              <TableCell align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {isAddingNew && (
-              <TableRow>
-                <TableCell>
-                  <Autocomplete
-                    value={selectedItem}
-                    onChange={(_event, newValue) => {
-                      setSelectedItem(newValue);
-                    }}
-                    inputValue={newItemSearch}
-                    onInputChange={(_event, newInputValue) => {
-                      setNewItemSearch(newInputValue);
-                    }}
-                    options={searchResults}
-                    getOptionLabel={(option) => option.name}
-                    loading={searching}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        size="small"
-                        placeholder="Search for item..."
-                        InputProps={{
-                          ...params.InputProps,
-                          endAdornment: (
-                            <>
-                              {searching ? <CircularProgress color="inherit" size={20} /> : null}
-                              {params.InputProps.endAdornment}
-                            </>
-                          ),
-                        }}
-                      />
-                    )}
-                  />
-                </TableCell>
-                <TableCell align="right">
-                  <TextField
-                    value={newItemCost}
-                    onChange={(e) => setNewItemCost(e.target.value)}
-                    size="small"
-                    type="number"
-                    inputProps={{ 
-                      step: "0.01",
-                      min: "0",
-                      style: { textAlign: 'right' }
-                    }}
-                  />
-                </TableCell>
-                <TableCell align="center">
-                  <Tooltip title="Save">
-                    <IconButton 
-                      onClick={handleSaveNew}
-                      disabled={!selectedItem || !newItemCost || savingId === -1}
-                      size="small"
-                    >
-                      <SaveIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Cancel">
-                    <IconButton 
-                      onClick={handleCancelNew}
-                      size="small"
-                    >
-                      <CancelIcon />
-                    </IconButton>
-                  </Tooltip>
-                </TableCell>
-              </TableRow>
-            )}
             {costs.map((cost) => (
               <TableRow key={cost.itemId}>
                 <TableCell>
-                  <Link
-                    to={`/item/${cost.itemId}`}
-                    style={{ color: 'inherit', textDecoration: 'underline' }}
-                  >
-                    {cost.name}
-                  </Link>
+                  {renderItemWithIcon(cost)}
                 </TableCell>
                 <TableCell align="right">
                   {editingId === cost.itemId ? (
@@ -347,48 +354,32 @@ const ExtraCost: React.FC = () => {
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
                       size="small"
-                      type="number"
-                      inputProps={{ 
-                        step: "0.01",
-                        min: "0",
-                        style: { textAlign: 'right' }
-                      }}
-                      autoFocus
+                      sx={{ width: 150 }}
                     />
                   ) : (
-                    cost.cost.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2
-                    })
+                    cost.cost.toLocaleString()
                   )}
                 </TableCell>
-                <TableCell align="center">
+                <TableCell align="right">
                   {editingId === cost.itemId ? (
                     <>
                       <Tooltip title="Save">
-                        <IconButton 
+                        <IconButton
                           onClick={() => handleSave(cost.itemId)}
                           disabled={savingId === cost.itemId}
-                          size="small"
                         >
                           <SaveIcon />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Cancel">
-                        <IconButton 
-                          onClick={handleCancel}
-                          size="small"
-                        >
+                        <IconButton onClick={handleCancel}>
                           <CancelIcon />
                         </IconButton>
                       </Tooltip>
                     </>
                   ) : (
                     <Tooltip title="Edit">
-                      <IconButton 
-                        onClick={() => handleEdit(cost)}
-                        size="small"
-                      >
+                      <IconButton onClick={() => handleEdit(cost)}>
                         <EditIcon />
                       </IconButton>
                     </Tooltip>

@@ -152,9 +152,32 @@ const Item: React.FC = () => {
         <ArrowBackIcon />
       </IconButton>
 
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          {item.name}
+      <Paper 
+        elevation={3} 
+        sx={{ 
+          p: 4,
+          bgcolor: 'rgba(26, 26, 26, 0.95)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: 2,
+          border: '1px solid rgba(255, 255, 255, 0.1)'
+        }}
+      >
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
+          <img 
+            src={`https://images.evetech.net/types/${item.itemId}/icon`} 
+            alt={item.name}
+            style={{ width: 64, height: 64, marginBottom: 16 }}
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+            }}
+          />
+          <Typography variant="h4" component="h1" gutterBottom>
+            {item.name}
+          </Typography>
+        </Box>
+        <Typography variant="body1" color="text.secondary" gutterBottom>
+          Item ID: {item.itemId}
         </Typography>
 
         <Divider sx={{ my: 2 }} />

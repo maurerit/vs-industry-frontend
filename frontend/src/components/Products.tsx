@@ -136,6 +136,7 @@ export const Products: React.FC = () => {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell>Icon</TableCell>
               <TableCell>Name</TableCell>
               <TableCell align="right">Description</TableCell>
               <TableCell align="right">Cost</TableCell>
@@ -149,6 +150,17 @@ export const Products: React.FC = () => {
                 onClick={() => navigate(`/product/${product.itemId}`)}
                 sx={{ cursor: 'pointer' }}
               >
+                <TableCell>
+                  <img 
+                    src={`https://images.evetech.net/types/${product.itemId}/icon`} 
+                    alt={product.name}
+                    style={{ width: 32, height: 32 }}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
+                </TableCell>
                 <TableCell>{product.name}</TableCell>
                 <TableCell align="right">
                   {product.description || '-'}

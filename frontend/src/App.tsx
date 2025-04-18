@@ -17,6 +17,7 @@ import ExtraCost from './pages/ExtraCost';
 import { Box } from '@mui/material';
 import { WarehouseProvider } from './context/WarehouseContext';
 import { useState } from 'react';
+import MarketOrders from './pages/MarketOrders';
 
 function App() {
   const [isCollapsed, setIsCollapsed] = useState(true);
@@ -58,6 +59,7 @@ function App() {
                   <Route path="/items" element={<Items />} />
                   <Route path="/item/:itemId" element={<Item />} />
                   <Route path="/admin/extracost" element={<ExtraCost />} />
+                  <Route path="/market-orders" element={<MarketOrders />} />
                 </Routes>
               </Box>
             </Box>
