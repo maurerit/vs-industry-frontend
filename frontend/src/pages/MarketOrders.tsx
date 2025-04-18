@@ -10,9 +10,7 @@ import {
   Paper,
   Typography,
   CircularProgress,
-  TablePagination,
 } from '@mui/material';
-import { format } from 'date-fns';
 
 interface MarketOrder {
   order_id: number;
@@ -31,8 +29,6 @@ const MarketOrders: React.FC = () => {
   const [orders, setOrders] = useState<MarketOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -69,15 +65,6 @@ const MarketOrders: React.FC = () => {
     }).format(value) + ' ISK';
   };
 
-  const handleChangePage = (_event: unknown, newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -111,43 +98,32 @@ const MarketOrders: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {orders
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((order) => (
-                <TableRow key={order.order_id}>
-                  <TableCell>
-                    <img 
-                      src={`https://images.evetech.net/types/${order.type_id}/icon`} 
-                      alt={order.type_name}
-                      style={{ width: 32, height: 32 }}
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>{order.type_name}</TableCell>
-                  <TableCell align="right">{formatISK(order.price)}</TableCell>
-                  <TableCell align="right">
-                    {order.volume_remain} / {order.volume_total}
-                  </TableCell>
-                  <TableCell align="right">
-                    {formatISK(order.price * order.volume_remain)}
-                  </TableCell>
-                </TableRow>
-              ))}
+            {orders.map((order) => (
+              <TableRow key={order.order_id}>
+                <TableCell>
+                  <img 
+                    src={`https://images.evetech.net/types/${order.type_id}/icon`} 
+                    alt={order.type_name}
+                    style={{ width: 32, height: 32 }}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
+                </TableCell>
+                <TableCell>{order.type_name}</TableCell>
+                <TableCell align="right">{formatISK(order.price)}</TableCell>
+                <TableCell align="right">
+                  {order.volume_remain} / {order.volume_total}
+                </TableCell>
+                <TableCell align="right">
+                  {formatISK(order.price * order.volume_remain)}
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 25]}
-        component="div"
-        count={orders.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
     </Box>
   );
 
