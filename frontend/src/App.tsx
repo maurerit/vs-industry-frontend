@@ -1,5 +1,6 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider, CssBaseline } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider, CssBaseline, Box } from '@mui/material';
 import { darkTheme } from './theme';
 import { Header } from './components/Header';
 import SidePanel from './components/SidePanel';
@@ -14,60 +15,84 @@ import UserCreate from './pages/UserCreate';
 import Items from './pages/Items';
 import Item from './pages/Item';
 import ExtraCost from './pages/ExtraCost';
-import { Box } from '@mui/material';
-import { WarehouseProvider } from './context/WarehouseContext';
-import { useState } from 'react';
 import MarketOrders from './pages/MarketOrders';
+import { WarehouseProvider } from './context/WarehouseContext';
+import EntryPage from './components/EntryPage';
 
-function App() {
+const App: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const hasToken = document.cookie.split(';').some((cookie) => 
+        cookie.trim().startsWith('EVETokenExpiry=')
+      );
+      setIsAuthenticated(hasToken);
+      setIsLoading(false);
+    };
+
+    checkAuth();
+    // Check auth status every minute
+    const interval = setInterval(checkAuth, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
-      <Router>
-        <WarehouseProvider>
-          <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-            <Header />
-            <Box sx={{ display: 'flex', flex: 1 }}>
-              <SidePanel isCollapsed={isCollapsed} onCollapse={setIsCollapsed} />
-              <Box 
-                component="main" 
-                sx={{ 
-                  flex: 1, 
-                  p: 3, 
-                  overflow: 'auto',
-                  transition: theme => theme.transitions.create('margin-left', {
-                    easing: theme.transitions.easing.sharp,
-                    duration: theme.transitions.duration.enteringScreen,
-                  }),
-                  marginLeft: { 
-                    xs: 0, 
-                    sm: isCollapsed ? '64px' : '240px'
-                  },
-                }}
-              >
-                <Routes>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/warehouse" element={<Warehouse />} />
-                  <Route path="/products" element={<Products />} />
-                  <Route path="/product/:id" element={<Product />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/admin" element={<Admin />} />
-                  <Route path="/admin/users" element={<Users />} />
-                  <Route path="/admin/users/new" element={<UserCreate />} />
-                  <Route path="/items" element={<Items />} />
-                  <Route path="/item/:itemId" element={<Item />} />
-                  <Route path="/admin/extracost" element={<ExtraCost />} />
-                  <Route path="/market-orders" element={<MarketOrders />} />
-                </Routes>
+      <EntryPage isVisible={!isAuthenticated} />
+      {isAuthenticated && (
+        <Router>
+          <WarehouseProvider>
+            <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+              <Header/>
+              <Box sx={{ display: 'flex', flex: 1 }}>
+                <SidePanel isCollapsed={isCollapsed} onCollapse={setIsCollapsed} />
+                <Box 
+                  component="main" 
+                  sx={{ 
+                    flex: 1, 
+                    p: 3, 
+                    overflow: 'auto',
+                    transition: theme => theme.transitions.create('margin-left', {
+                      easing: theme.transitions.easing.sharp,
+                      duration: theme.transitions.duration.enteringScreen,
+                    }),
+                    marginLeft: { 
+                      xs: 0, 
+                      sm: isCollapsed ? '64px' : '240px'
+                    },
+                  }}
+                >
+                  <Routes>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/warehouse" element={<Warehouse />} />
+                    <Route path="/products" element={<Products />} />
+                    <Route path="/product/:id" element={<Product />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/admin" element={<Admin />} />
+                    <Route path="/admin/users" element={<Users />} />
+                    <Route path="/admin/users/new" element={<UserCreate />} />
+                    <Route path="/items" element={<Items />} />
+                    <Route path="/item/:itemId" element={<Item />} />
+                    <Route path="/admin/extracost" element={<ExtraCost />} />
+                    <Route path="/market-orders" element={<MarketOrders />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </Box>
               </Box>
             </Box>
-          </Box>
-        </WarehouseProvider>
-      </Router>
+          </WarehouseProvider>
+        </Router>
+      )}
     </ThemeProvider>
   );
-}
+};
 
 export default App;
