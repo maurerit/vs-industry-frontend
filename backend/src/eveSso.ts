@@ -1,4 +1,3 @@
-import fetch from 'node-fetch';
 import jwt from 'jsonwebtoken';
 import jwksClient from 'jwks-rsa';
 
@@ -64,7 +63,7 @@ export class EveSso {
         throw new Error(`Failed to get access token: ${response.status} ${JSON.stringify(errorData)}`);
       }
 
-      const data = await response.json();
+      const data:any = await response.json();
 
       return new Promise((resolve, reject) => {
         jwt.verify(
@@ -112,7 +111,7 @@ export class EveSso {
       throw new Error(`Got status code ${response.status}`);
     }
 
-    const data = await response.json();
+    const data:any = await response.json();
 
     return new Promise((resolve, reject) => {
       jwt.verify(
