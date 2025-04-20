@@ -71,7 +71,7 @@ const IgnoredProducts: React.FC = () => {
       return;
     }
     try {
-      const response = await fetch(`/api/data/type?page=0&pageSize=25&search=${encodeURIComponent(search)}`);
+      const response = await fetch(`/api/data/type?page=0&pageSize=25&search=${encodeURIComponent(search)}&marketGroupSearch=false`);
       const data: ProductTypeResponse = await response.json();
       setSearchResults(data.content);
     } catch (error) {
