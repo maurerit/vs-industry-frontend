@@ -18,7 +18,7 @@ This frontend application works in conjunction with a Spring Boot backend implem
 - Warehouse inventory management
 - Market order tracking
 - Corporate wallet balance monitoring
-- Real-time data updates
+- Manually syncing of data from EVE Online
 - User authentication via EVE Online SSO
 
 ## Development
@@ -26,6 +26,10 @@ This frontend application works in conjunction with a Spring Boot backend implem
 This project was built using Cursor, a modern IDE for web development. The frontend is built with React and Material-UI, providing a responsive and intuitive user interface.
 
 ## Getting Started
+
+### Requirements
+- Node.js v18.19.0
+- NPM 9.2.0
 
 ### Development mode
 1. Clone the repository
