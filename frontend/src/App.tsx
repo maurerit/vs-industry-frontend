@@ -20,6 +20,7 @@ import { WarehouseProvider } from './context/WarehouseContext';
 import EntryPage from './pages/EntryPage.tsx';
 import ConfigureProduct from './pages/ConfigureProduct';
 import SPAIError from './pages/SPAIError';
+import IgnoredProducts from './pages/IgnoredProducts';
 
 const App: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(true);
@@ -110,6 +111,7 @@ const App: React.FC = () => {
                     <Route path="/item/:itemId" element={<Item />} />
                     <Route path="/admin/extracost" element={<ExtraCost />} />
                     <Route path="/market-orders" element={<MarketOrders />} />
+                    <Route path="/admin/ignored-products" element={<IgnoredProducts />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
                 </Box>
