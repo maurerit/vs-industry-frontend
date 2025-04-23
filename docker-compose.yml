@@ -16,8 +16,6 @@ services:
       - EVE_CLIENT_SECRET=${EVE_CLIENT_SECRET}
       - EVE_CALLBACK_URI=http://localhost/login/oauth2/code/eve
       - PORT=3001
-    ports:
-      - "3001:3001"
 
   java-backend:
     image: maurerit/vs-industry-spring:v1.0.21
@@ -26,8 +24,6 @@ services:
       - EVE_CLIENT_SECRET=${EVE_CLIENT_SECRET}
       - EVE_CALLBACK_URI=http://localhost/login/oauth2/code/eve
       - CORPORATION_ID=${CORPORATION_ID}
-    ports:
-      - "8080:8080"
     volumes:
       - ${PWD}/config:/app/config
       - ${PWD}/data:/app/data
