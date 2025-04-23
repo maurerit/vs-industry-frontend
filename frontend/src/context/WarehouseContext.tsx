@@ -10,6 +10,7 @@ interface WarehouseContextType {
   setPrefetchedProduct: (itemId: string, data: BlueprintData | null) => void;
   clearPrefetchedProduct: (itemId: string) => void;
   isRefreshing: boolean;
+  setIsRefreshing: (isRefreshing: boolean) => void;
   isProcessing: boolean;
   refreshPromise: Promise<void> | null;
   processPromise: Promise<void> | null;
@@ -95,6 +96,7 @@ export const WarehouseProvider: React.FC<WarehouseProviderProps> = ({ children }
         setPrefetchedProduct,
         clearPrefetchedProduct,
         isRefreshing,
+        setIsRefreshing,
         isProcessing,
         refreshPromise,
         processPromise,
