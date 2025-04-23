@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   frontend:
-    image: maurerit/vs-industry-auth:v1.0.20
+    image: maurerit/vs-industry-auth:v1.0.21
     ports:
       - "80:80"
     depends_on:
@@ -10,7 +10,7 @@ services:
       - js-backend
 
   js-backend:
-    image: maurerit/vs-industry-frontend:v1.0.20
+    image: maurerit/vs-industry-frontend:v1.0.21
     environment:
       - EVE_CLIENT_ID=${EVE_CLIENT_ID}
       - EVE_CLIENT_SECRET=${EVE_CLIENT_SECRET}
@@ -20,7 +20,7 @@ services:
       - "3001:3001"
 
   java-backend:
-    image: maurerit/vs-industry-spring:v1.0.20
+    image: maurerit/vs-industry-spring:v1.0.21
     environment:
       - EVE_CLIENT_ID=${EVE_CLIENT_ID}
       - EVE_CLIENT_SECRET=${EVE_CLIENT_SECRET}
