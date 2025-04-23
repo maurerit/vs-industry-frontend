@@ -87,6 +87,7 @@ const App: React.FC = () => {
                     flex: 1, 
                     p: 3, 
                     overflow: 'auto',
+                    pt: '88px',
                     transition: theme => theme.transitions.create('margin-left', {
                       easing: theme.transitions.easing.sharp,
                       duration: theme.transitions.duration.enteringScreen,

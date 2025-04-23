@@ -84,7 +84,7 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <AppBar position="static" sx={{ bgcolor: '#1a1a1a' }}>
+    <AppBar position="fixed" sx={{ bgcolor: '#1a1a1a' }}>
       <Toolbar>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           EVE Industry Dashboard
