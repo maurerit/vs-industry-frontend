@@ -1,5 +1,7 @@
+import { URL, URLSearchParams } from 'url';
 import jwt from 'jsonwebtoken';
 import jwksClient from 'jwks-rsa';
+import fetch from 'node-fetch';
 
 const ENDPOINT = 'https://login.eveonline.com';
 

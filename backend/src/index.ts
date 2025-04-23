@@ -1,9 +1,9 @@
 import Koa from 'koa';
 import Router from 'koa-router';
-import { EveSso } from './eveSso';
+import { EveSso } from './eveSso.js';
 import { Context } from 'koa';
 import bodyParser from 'koa-bodyparser';
-import { config } from './config';
+import { config } from './config.js';
 import jwt from 'jsonwebtoken';
 
 const app = new Koa();

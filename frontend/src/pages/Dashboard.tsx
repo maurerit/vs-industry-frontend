@@ -16,7 +16,8 @@ function Dashboard() {
     isRefreshing, 
     isProcessing, 
     fetchAll, 
-    processWarehouse 
+    processWarehouse,
+    setIsRefreshing
   } = useWarehouse();
   
   const [stats, setStats] = useState<{
@@ -27,6 +28,39 @@ function Dashboard() {
   const [walletBalances, setWalletBalances] = useState<WalletBalance[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkFetchStatus = async () => {
+      try {
+        const response = await fetch('/api/data/fetch-status');
+        if (!response.ok) return;
+        
+        const data = await response.json();
+        if (data.status === 'Fetching in progress') {
+          setIsRefreshing(true);
+          // Set up polling
+          const interval = setInterval(async () => {
+            const statusResponse = await fetch('/api/data/fetch-status');
+            if (!statusResponse.ok) {
+              clearInterval(interval);
+              return;
+            }
+            const statusData = await statusResponse.json();
+            if (statusData.status !== 'Fetching in progress') {
+              setIsRefreshing(false);
+              clearInterval(interval);
+            }
+          }, 5000);
+          
+          return () => clearInterval(interval);
+        }
+      } catch (error) {
+        console.error('Error checking fetch status:', error);
+      }
+    };
+
+    checkFetchStatus();
+  }, [setIsRefreshing]);
 
   const fetchMarketSummary = async () => {
     try {

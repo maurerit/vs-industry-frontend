@@ -19,19 +19,40 @@ import MarketOrders from './pages/MarketOrders';
 import { WarehouseProvider } from './context/WarehouseContext';
 import EntryPage from './pages/EntryPage.tsx';
 import ConfigureProduct from './pages/ConfigureProduct';
+import SPAIError from './pages/SPAIError';
 import IgnoredProducts from './pages/IgnoredProducts';
 
 const App: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isValidUser, setIsValidUser] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const checkAuth = () => {
+    const checkAuth = async () => {
       const hasToken = document.cookie.split(';').some((cookie) => 
         cookie.trim().startsWith('EVETokenExpiry=')
       );
-      setIsAuthenticated(hasToken);
+      
+      if (hasToken) {
+        try {
+          const response = await fetch('/api/user/me');
+          if (response.ok) {
+            setIsValidUser(true);
+            setIsAuthenticated(true);
+          } else {
+            setIsValidUser(false);
+            setIsAuthenticated(false);
+          }
+        } catch (error) {
+          console.error('Error checking user validity:', error);
+          setIsValidUser(false);
+          setIsAuthenticated(false);
+        }
+      } else {
+        setIsValidUser(null);
+        setIsAuthenticated(false);
+      }
       setIsLoading(false);
     };
 
@@ -43,6 +64,10 @@ const App: React.FC = () => {
 
   if (isLoading) {
     return null;
+  }
+
+  if (isValidUser === false) {
+    return <SPAIError />;
   }
 
   return (
@@ -62,6 +87,7 @@ const App: React.FC = () => {
                     flex: 1, 
                     p: 3, 
                     overflow: 'auto',
+                    pt: '88px',
                     transition: theme => theme.transitions.create('margin-left', {
                       easing: theme.transitions.easing.sharp,
                       duration: theme.transitions.duration.enteringScreen,
