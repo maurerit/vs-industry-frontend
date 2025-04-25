@@ -4,7 +4,7 @@ import {
   Refresh as RefreshIcon,
   PlayArrow as PlayArrowIcon,
 } from '@mui/icons-material';
-import { useWarehouse } from '../context/WarehouseContext.tsx';
+import { useVaporSeaIndustry } from '../context/VaporSeaIndustryContext';
 
 interface WalletBalance {
   division: number;
@@ -18,8 +18,8 @@ function Dashboard() {
     fetchAll, 
     processWarehouse,
     setIsRefreshing
-  } = useWarehouse();
-  
+  } = useVaporSeaIndustry();
+
   const [stats, setStats] = useState<{
     totalOrders: Record<number, number>;
     totalSell: Record<number, number>;
@@ -34,7 +34,7 @@ function Dashboard() {
       try {
         const response = await fetch('/api/data/fetch-status');
         if (!response.ok) return;
-        
+
         const data = await response.json();
         if (data.status === 'Fetching in progress') {
           setIsRefreshing(true);
@@ -51,7 +51,7 @@ function Dashboard() {
               clearInterval(interval);
             }
           }, 5000);
-          
+
           return () => clearInterval(interval);
         }
       } catch (error) {

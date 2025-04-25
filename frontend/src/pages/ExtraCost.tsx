@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Table,
@@ -29,6 +29,7 @@ interface ExtraCost {
   itemId: number;
   name: string;
   cost: number;
+  costType: string;
 }
 
 interface ExtraCostResponse {
@@ -56,13 +57,16 @@ const ExtraCost: React.FC = () => {
   const [totalElements, setTotalElements] = useState(0);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState<string>('');
+  const [editCostType, setEditCostType] = useState<string>('');
   const [savingId, setSavingId] = useState<number | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [newItemSearch, setNewItemSearch] = useState('');
   const [newItemCost, setNewItemCost] = useState('');
-  const [searchResults, setSearchResults] = useState<SearchItem[]>([]);
+  const [newItemCostType, setNewItemCostType] = useState('');
   const [selectedItem, setSelectedItem] = useState<SearchItem | null>(null);
+  const [searchResults, setSearchResults] = useState<SearchItem[]>([]);
   const [searching, setSearching] = useState(false);
+  const searchItemRef = useRef<HTMLInputElement>(null);
 
   const fetchCosts = async (page: number, pageSize: number) => {
     try {
@@ -88,6 +92,7 @@ const ExtraCost: React.FC = () => {
   const handleEdit = (cost: ExtraCost) => {
     setEditingId(cost.itemId);
     setEditValue(cost.cost.toString());
+    setEditCostType(cost.costType || '');
   };
 
   const handleSave = async (itemId: number) => {
@@ -106,7 +111,8 @@ const ExtraCost: React.FC = () => {
         },
         body: JSON.stringify({ 
           itemId: itemId,
-          cost: numericValue 
+          cost: numericValue,
+          costType: editCostType
         }),
       });
 
@@ -116,7 +122,7 @@ const ExtraCost: React.FC = () => {
 
       // Update the local state with the new value
       setCosts(costs.map(cost => 
-        cost.itemId === itemId ? { ...cost, cost: numericValue } : cost
+        cost.itemId === itemId ? { ...cost, cost: numericValue, costType: editCostType } : cost
       ));
       setEditingId(null);
     } catch (err) {
@@ -129,6 +135,7 @@ const ExtraCost: React.FC = () => {
   const handleCancel = () => {
     setEditingId(null);
     setEditValue('');
+    setEditCostType('');
   };
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -166,10 +173,21 @@ const ExtraCost: React.FC = () => {
     return () => clearTimeout(timer);
   }, [newItemSearch]);
 
+  // Focus the Search Item field when the add new form becomes visible
+  useEffect(() => {
+    if (isAddingNew && searchItemRef.current) {
+      // Small timeout to ensure the field is rendered before focusing
+      setTimeout(() => {
+        searchItemRef.current?.focus();
+      }, 50);
+    }
+  }, [isAddingNew]);
+
   const handleAddNew = () => {
     setIsAddingNew(true);
     setNewItemSearch('');
     setNewItemCost('');
+    setNewItemCostType('');
     setSelectedItem(null);
   };
 
@@ -177,6 +195,7 @@ const ExtraCost: React.FC = () => {
     setIsAddingNew(false);
     setNewItemSearch('');
     setNewItemCost('');
+    setNewItemCostType('');
     setSelectedItem(null);
   };
 
@@ -198,7 +217,8 @@ const ExtraCost: React.FC = () => {
         },
         body: JSON.stringify({ 
           itemId: selectedItem.itemId,
-          cost: numericValue 
+          cost: numericValue,
+          costType: newItemCostType
         }),
       });
 
@@ -210,12 +230,14 @@ const ExtraCost: React.FC = () => {
       setCosts([...costs, {
         itemId: selectedItem.itemId,
         name: selectedItem.name,
-        cost: numericValue
+        cost: numericValue,
+        costType: newItemCostType
       }]);
       
       setIsAddingNew(false);
       setNewItemSearch('');
       setNewItemCost('');
+      setNewItemCostType('');
       setSelectedItem(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred while saving');
@@ -272,7 +294,15 @@ const ExtraCost: React.FC = () => {
       </Box>
 
       {isAddingNew && (
-        <Paper sx={{ p: 2, mb: 3 }}>
+        <Paper 
+          sx={{ p: 2, mb: 3 }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && selectedItem && newItemCost && savingId !== -1) {
+              e.preventDefault();
+              handleSaveNew();
+            }
+          }}
+        >
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             <Autocomplete
               sx={{ flex: 1 }}
@@ -287,6 +317,7 @@ const ExtraCost: React.FC = () => {
                   label="Search Item"
                   variant="outlined"
                   fullWidth
+                  inputRef={searchItemRef}
                 />
               )}
               renderOption={(props, option) => (
@@ -312,7 +343,15 @@ const ExtraCost: React.FC = () => {
               variant="outlined"
               value={newItemCost}
               onChange={(e) => setNewItemCost(e.target.value)}
-              sx={{ width: 200 }}
+              sx={{ width: 150 }}
+            />
+            <TextField
+              label="Cost Type"
+              variant="outlined"
+              value={newItemCostType}
+              onChange={(e) => setNewItemCostType(e.target.value)}
+              sx={{ width: 150 }}
+              placeholder="User definable"
             />
             <Button
               variant="contained"
@@ -339,6 +378,7 @@ const ExtraCost: React.FC = () => {
             <TableRow>
               <TableCell>Item</TableCell>
               <TableCell align="right">Cost</TableCell>
+              <TableCell align="right">Cost Type</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -358,6 +398,19 @@ const ExtraCost: React.FC = () => {
                     />
                   ) : (
                     cost.cost.toLocaleString()
+                  )}
+                </TableCell>
+                <TableCell align="right">
+                  {editingId === cost.itemId ? (
+                    <TextField
+                      value={editCostType}
+                      onChange={(e) => setEditCostType(e.target.value)}
+                      size="small"
+                      sx={{ width: 150 }}
+                      placeholder="User definable"
+                    />
+                  ) : (
+                    cost.costType || ''
                   )}
                 </TableCell>
                 <TableCell align="right">

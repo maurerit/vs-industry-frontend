@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { BlueprintData } from '../types/blueprint';
 
-interface WarehouseContextType {
+interface VaporSeaIndustryContextType {
+  // Original WarehouseContext state
   nameFilter: string;
   setNameFilter: (filter: string) => void;
   lastScrollPosition: number;
@@ -16,23 +17,38 @@ interface WarehouseContextType {
   processPromise: Promise<void> | null;
   fetchAll: () => Promise<void>;
   processWarehouse: () => Promise<void>;
+  
+  // New state for Products -> Items
+  productsPage: number;
+  setProductsPage: (page: number) => void;
+  productsPageSize: number;
+  setProductsPageSize: (pageSize: number) => void;
+  
+  // New state for Items -> Item
+  itemsPage: number;
+  setItemsPage: (page: number) => void;
+  itemsPageSize: number;
+  setItemsPageSize: (pageSize: number) => void;
+  itemsSearchField: string;
+  setItemsSearchField: (search: string) => void;
 }
 
-const WarehouseContext = createContext<WarehouseContextType | undefined>(undefined);
+const VaporSeaIndustryContext = createContext<VaporSeaIndustryContextType | undefined>(undefined);
 
-export const useWarehouse = () => {
-  const context = useContext(WarehouseContext);
+export const useVaporSeaIndustry = () => {
+  const context = useContext(VaporSeaIndustryContext);
   if (!context) {
-    throw new Error('useWarehouse must be used within a WarehouseProvider');
+    throw new Error('useVaporSeaIndustry must be used within a VaporSeaIndustryProvider');
   }
   return context;
 };
 
-interface WarehouseProviderProps {
+interface VaporSeaIndustryProviderProps {
   children: ReactNode;
 }
 
-export const WarehouseProvider: React.FC<WarehouseProviderProps> = ({ children }) => {
+export const VaporSeaIndustryProvider: React.FC<VaporSeaIndustryProviderProps> = ({ children }) => {
+  // Original WarehouseContext state
   const [nameFilter, setNameFilter] = useState('');
   const [lastScrollPosition, setLastScrollPosition] = useState(0);
   const [prefetchedProducts] = useState<Record<string, BlueprintData | null>>({});
@@ -40,6 +56,15 @@ export const WarehouseProvider: React.FC<WarehouseProviderProps> = ({ children }
   const [isProcessing, setIsProcessing] = useState(false);
   const [refreshPromise, setRefreshPromise] = useState<Promise<void> | null>(null);
   const [processPromise, setProcessPromise] = useState<Promise<void> | null>(null);
+  
+  // New state for Products -> Items
+  const [productsPage, setProductsPage] = useState(0);
+  const [productsPageSize, setProductsPageSize] = useState(20);
+  
+  // New state for Items -> Item
+  const [itemsPage, setItemsPage] = useState(0);
+  const [itemsPageSize, setItemsPageSize] = useState(20);
+  const [itemsSearchField, setItemsSearchField] = useState('');
 
   const setPrefetchedProduct = (itemId: string, data: BlueprintData | null) => {
     prefetchedProducts[itemId] = data;
@@ -86,8 +111,9 @@ export const WarehouseProvider: React.FC<WarehouseProviderProps> = ({ children }
   };
 
   return (
-    <WarehouseContext.Provider
+    <VaporSeaIndustryContext.Provider
       value={{
+        // Original WarehouseContext values
         nameFilter,
         setNameFilter,
         lastScrollPosition,
@@ -102,9 +128,23 @@ export const WarehouseProvider: React.FC<WarehouseProviderProps> = ({ children }
         processPromise,
         fetchAll,
         processWarehouse,
+        
+        // New values for Products -> Items
+        productsPage,
+        setProductsPage,
+        productsPageSize,
+        setProductsPageSize,
+        
+        // New values for Items -> Item
+        itemsPage,
+        setItemsPage,
+        itemsPageSize,
+        setItemsPageSize,
+        itemsSearchField,
+        setItemsSearchField,
       }}
     >
       {children}
-    </WarehouseContext.Provider>
+    </VaporSeaIndustryContext.Provider>
   );
-}; 
+};

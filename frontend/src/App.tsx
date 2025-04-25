@@ -16,7 +16,7 @@ import Items from './pages/Items';
 import Item from './pages/Item';
 import ExtraCost from './pages/ExtraCost';
 import MarketOrders from './pages/MarketOrders';
-import { WarehouseProvider } from './context/WarehouseContext';
+import { VaporSeaIndustryProvider } from './context/VaporSeaIndustryContext';
 import EntryPage from './pages/EntryPage.tsx';
 import ConfigureProduct from './pages/ConfigureProduct';
 import SPAIError from './pages/SPAIError';
@@ -33,7 +33,7 @@ const App: React.FC = () => {
       const hasToken = document.cookie.split(';').some((cookie) => 
         cookie.trim().startsWith('EVETokenExpiry=')
       );
-      
+
       if (hasToken) {
         try {
           const response = await fetch('/api/user/me');
@@ -76,7 +76,7 @@ const App: React.FC = () => {
       <EntryPage isVisible={!isAuthenticated} />
       {isAuthenticated && (
         <Router>
-          <WarehouseProvider>
+          <VaporSeaIndustryProvider>
             <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
               <Header/>
               <Box sx={{ display: 'flex', flex: 1 }}>
@@ -118,7 +118,7 @@ const App: React.FC = () => {
                 </Box>
               </Box>
             </Box>
-          </WarehouseProvider>
+          </VaporSeaIndustryProvider>
         </Router>
       )}
     </ThemeProvider>

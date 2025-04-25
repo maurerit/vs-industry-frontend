@@ -26,6 +26,7 @@ services:
       - EVE_CLIENT_SECRET=${EVE_CLIENT_SECRET}
       - EVE_CALLBACK_URI=http://localhost/login/oauth2/code/eve
       - CORPORATION_ID=${CORPORATION_ID}
+      - DEFAULT_PRINCIPAL=${DEFAULT_PRINCIPAL}
     volumes:
       - ${PWD}/config:/app/config
       - ${PWD}/data:/app/data
