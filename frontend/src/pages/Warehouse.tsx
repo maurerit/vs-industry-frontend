@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useWarehouse } from '../context/WarehouseContext.tsx';
+import { useVaporSeaIndustry } from '../context/VaporSeaIndustryContext';
 import {
   Box,
   Paper,
@@ -47,7 +47,7 @@ export const Warehouse: React.FC = () => {
     lastScrollPosition, 
     setLastScrollPosition,
     setPrefetchedProduct 
-  } = useWarehouse();
+  } = useVaporSeaIndustry();
   const containerRef = useRef<HTMLDivElement>(null);
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -128,7 +128,7 @@ export const Warehouse: React.FC = () => {
 
   const handleSave = async (itemId: number) => {
     if (!editingItem) return;
-    
+
     try {
       setSaving(itemId);
       const response = await fetch('/api/warehouse', {
@@ -192,7 +192,7 @@ export const Warehouse: React.FC = () => {
     if (target.closest('button') || target.closest('td:last-child')) {
       return; // Don't navigate if clicking edit buttons or their container
     }
-    
+
     if(editingItem?.itemId === itemId) {
       return;
     }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useVaporSeaIndustry } from '../context/VaporSeaIndustryContext';
 import {
   Box,
   Paper,
@@ -40,11 +41,10 @@ interface ProductResponse {
 
 export const Products: React.FC = () => {
   const navigate = useNavigate();
+  const { productsPage, setProductsPage, productsPageSize, setProductsPageSize } = useVaporSeaIndustry();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(20);
   const [totalElements, setTotalElements] = useState(0);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
@@ -66,21 +66,21 @@ export const Products: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchProducts(page, rowsPerPage);
-  }, [page, rowsPerPage]);
+    fetchProducts(productsPage, productsPageSize);
+  }, [productsPage, productsPageSize]);
 
   const handleChangePage = (_event: unknown, newPage: number) => {
-    setPage(newPage);
+    setProductsPage(newPage);
   };
 
   const handleChangeRowsPerPage = (event: SelectChangeEvent<number>) => {
-    setRowsPerPage(Number(event.target.value));
-    setPage(0);
+    setProductsPageSize(Number(event.target.value));
+    setProductsPage(0);
   };
 
   const handleTablePaginationRowsPerPageChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    setProductsPageSize(parseInt(event.target.value, 10));
+    setProductsPage(0);
   };
 
   if (loading) {
@@ -117,7 +117,7 @@ export const Products: React.FC = () => {
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <InputLabel>Page Size</InputLabel>
             <Select
-              value={rowsPerPage}
+              value={productsPageSize}
               label="Page Size"
               onChange={handleChangeRowsPerPage}
             >
@@ -188,9 +188,9 @@ export const Products: React.FC = () => {
       <TablePagination
         component="div"
         count={totalElements}
-        page={page}
+        page={productsPage}
         onPageChange={handleChangePage}
-        rowsPerPage={rowsPerPage}
+        rowsPerPage={productsPageSize}
         onRowsPerPageChange={handleTablePaginationRowsPerPageChange}
         rowsPerPageOptions={[10, 20, 50, 100]}
       />
