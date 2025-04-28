@@ -17,13 +17,13 @@ interface VaporSeaIndustryContextType {
   processPromise: Promise<void> | null;
   fetchAll: () => Promise<void>;
   processWarehouse: () => Promise<void>;
-  
+
   // New state for Products -> Items
   productsPage: number;
   setProductsPage: (page: number) => void;
   productsPageSize: number;
   setProductsPageSize: (pageSize: number) => void;
-  
+
   // New state for Items -> Item
   itemsPage: number;
   setItemsPage: (page: number) => void;
@@ -31,6 +31,16 @@ interface VaporSeaIndustryContextType {
   setItemsPageSize: (pageSize: number) => void;
   itemsSearchField: string;
   setItemsSearchField: (search: string) => void;
+
+  // State for Industry Jobs
+  industryJobsPage: number;
+  setIndustryJobsPage: (page: number) => void;
+  industryJobsPageSize: number;
+  setIndustryJobsPageSize: (pageSize: number) => void;
+  industryJobsSort: string;
+  setIndustryJobsSort: (sort: string) => void;
+  industryJobsFinished: boolean;
+  setIndustryJobsFinished: (finished: boolean) => void;
 }
 
 const VaporSeaIndustryContext = createContext<VaporSeaIndustryContextType | undefined>(undefined);
@@ -56,15 +66,21 @@ export const VaporSeaIndustryProvider: React.FC<VaporSeaIndustryProviderProps> =
   const [isProcessing, setIsProcessing] = useState(false);
   const [refreshPromise, setRefreshPromise] = useState<Promise<void> | null>(null);
   const [processPromise, setProcessPromise] = useState<Promise<void> | null>(null);
-  
+
   // New state for Products -> Items
   const [productsPage, setProductsPage] = useState(0);
   const [productsPageSize, setProductsPageSize] = useState(20);
-  
+
   // New state for Items -> Item
   const [itemsPage, setItemsPage] = useState(0);
   const [itemsPageSize, setItemsPageSize] = useState(20);
   const [itemsSearchField, setItemsSearchField] = useState('');
+
+  // State for Industry Jobs
+  const [industryJobsPage, setIndustryJobsPage] = useState(0);
+  const [industryJobsPageSize, setIndustryJobsPageSize] = useState(20);
+  const [industryJobsSort, setIndustryJobsSort] = useState('endDate,DESC');
+  const [industryJobsFinished, setIndustryJobsFinished] = useState(false);
 
   const setPrefetchedProduct = (itemId: string, data: BlueprintData | null) => {
     prefetchedProducts[itemId] = data;
@@ -76,7 +92,7 @@ export const VaporSeaIndustryProvider: React.FC<VaporSeaIndustryProviderProps> =
 
   const fetchAll = async (): Promise<void> => {
     if (isRefreshing) return refreshPromise || Promise.resolve();
-    
+
     setIsRefreshing(true);
     const promise = fetch('/api/data/fetch-all', {
       method: 'POST',
@@ -87,14 +103,14 @@ export const VaporSeaIndustryProvider: React.FC<VaporSeaIndustryProviderProps> =
       setIsRefreshing(false);
       setRefreshPromise(null);
     });
-    
+
     setRefreshPromise(promise);
     return promise;
   };
 
   const processWarehouse = async (): Promise<void> => {
     if (isProcessing) return processPromise || Promise.resolve();
-    
+
     setIsProcessing(true);
     const promise = fetch('/api/warehouse/processAll', {
       method: 'POST',
@@ -105,7 +121,7 @@ export const VaporSeaIndustryProvider: React.FC<VaporSeaIndustryProviderProps> =
       setIsProcessing(false);
       setProcessPromise(null);
     });
-    
+
     setProcessPromise(promise);
     return promise;
   };
@@ -128,13 +144,13 @@ export const VaporSeaIndustryProvider: React.FC<VaporSeaIndustryProviderProps> =
         processPromise,
         fetchAll,
         processWarehouse,
-        
+
         // New values for Products -> Items
         productsPage,
         setProductsPage,
         productsPageSize,
         setProductsPageSize,
-        
+
         // New values for Items -> Item
         itemsPage,
         setItemsPage,
@@ -142,6 +158,16 @@ export const VaporSeaIndustryProvider: React.FC<VaporSeaIndustryProviderProps> =
         setItemsPageSize,
         itemsSearchField,
         setItemsSearchField,
+
+        // Values for Industry Jobs
+        industryJobsPage,
+        setIndustryJobsPage,
+        industryJobsPageSize,
+        setIndustryJobsPageSize,
+        industryJobsSort,
+        setIndustryJobsSort,
+        industryJobsFinished,
+        setIndustryJobsFinished,
       }}
     >
       {children}

@@ -22,7 +22,8 @@ import {
   ChevronRight as ChevronRightIcon,
   AdminPanelSettings as AdminIcon,
   Category as CategoryIcon,
-  Storefront as StorefrontIcon
+  Storefront as StorefrontIcon,
+  Engineering as EngineeringIcon
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -51,6 +52,7 @@ const SidePanel: React.FC<SidePanelProps> = ({ isCollapsed, onCollapse }) => {
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'Market Orders', icon: <ShoppingCartIcon />, path: '/market-orders' },
+    { text: 'Industry Jobs', icon: <EngineeringIcon />, path: '/industry-jobs' },
     { text: 'Warehouse', icon: <InventoryIcon />, path: '/warehouse' },
     { text: 'Products', icon: <StorefrontIcon />, path: '/products' },
     { text: 'Items', icon: <CategoryIcon />, path: '/items' },
