@@ -16,6 +16,7 @@ import Items from './pages/Items';
 import Item from './pages/Item';
 import ExtraCost from './pages/ExtraCost';
 import MarketOrders from './pages/MarketOrders';
+import IndustryJobs from './pages/IndustryJobs';
 import { VaporSeaIndustryProvider } from './context/VaporSeaIndustryContext';
 import EntryPage from './pages/EntryPage.tsx';
 import ConfigureProduct from './pages/ConfigureProduct';
@@ -112,6 +113,7 @@ const App: React.FC = () => {
                     <Route path="/item/:itemId" element={<Item />} />
                     <Route path="/admin/extracost" element={<ExtraCost />} />
                     <Route path="/market-orders" element={<MarketOrders />} />
+                    <Route path="/industry-jobs" element={<IndustryJobs />} />
                     <Route path="/admin/ignored-products" element={<IgnoredProducts />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
