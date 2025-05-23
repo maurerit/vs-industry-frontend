@@ -1,0 +1,55 @@
+{
+  "name": "vs-industry-electron",
+  "version": "1.0.0",
+  "description": "EVE Online Industry Management Tool - Electron App",
+  "main": "dist/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "tsc && electron .",
+    "build": "tsc",
+    "package": "electron-builder",
+    "make": "npm run build && npm run package",
+    "build:all": "node scripts/build.js"
+  },
+  "build": {
+    "appId": "com.vs-industry.app",
+    "productName": "VS Industry",
+    "directories": {
+      "output": "release/"
+    },
+    "files": [
+      "dist/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../backend/dist",
+        "to": "backend"
+      },
+      {
+        "from": "../frontend/dist",
+        "to": "frontend"
+      }
+    ]
+  },
+  "keywords": [
+    "electron",
+    "eve-online",
+    "industry"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.15.19",
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "http-proxy-middleware": "^3.0.5",
+    "tree-kill": "^1.2.2"
+  }
+}
