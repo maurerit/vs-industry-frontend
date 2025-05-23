@@ -36,6 +36,7 @@ import {
   Typography,
   CircularProgress,
 } from '@mui/material';
+import ReactECharts from 'echarts-for-react';
 
 interface MarketOrder {
   order_id: number;
@@ -88,6 +89,99 @@ const MarketOrders: React.FC = () => {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(value) + ' ISK';
+  };
+
+  const prepareChartData = (orders: MarketOrder[]) => {
+    // Count orders by item type
+    const orderCounts: Record<string, number> = {};
+
+    orders.forEach(order => {
+      if (orderCounts[order.type_name]) {
+        orderCounts[order.type_name] += order.volume_remain * order.price;
+      } else {
+        orderCounts[order.type_name] = order.volume_remain * order.price;
+      }
+    });
+
+    // Convert to format needed for echarts
+    return Object.entries(orderCounts).map(([name, value]) => ({
+      name,
+      value
+    }));
+  };
+
+  const getChartOptions = (data: { name: string; value: number }[], title: string) => {
+    return {
+      title: {
+        text: `${title} Distribution`,
+        left: 'center',
+        textStyle: {
+          fontSize: 16,
+          color: '#ffffff'
+        }
+      },
+      tooltip: {
+        trigger: 'item',
+        formatter: function(params: any) {
+          // Format the value with commas
+          const formattedValue = formatISK(params.value);
+          return `${params.seriesName}<br/>${params.name}: ${formattedValue} (${params.percent}%)`;
+        }
+      },
+      legend: {
+        orient: 'vertical',
+        left: 10,
+        top: 50,
+        type: 'scroll',
+        maxHeight: 300,
+        textStyle: {
+          color: '#ffffff',
+          fontSize: 14,
+          overflow: 'breakAll',
+          width: 150,
+          lineHeight: 20
+        },
+        formatter: function(name: string) {
+          // Limit legend name length if too long
+          return name.length > 20 ? name.substring(0, 18) + '...' : name;
+        },
+        tooltip: {
+          show: true,
+          formatter: function(params: any) {
+            return params.name;
+          }
+        },
+        itemGap: 12,
+        padding: [5, 10],
+        backgroundColor: 'rgba(0,0,0,0.2)',
+        borderRadius: 5
+      },
+      series: [
+        {
+          name: title,
+          type: 'pie',
+          radius: ['40%', '70%'],
+          center: ['60%', '55%'],
+          data: data,
+          itemStyle: {
+            borderColor: '#000',
+            borderWidth: 1
+          },
+          label: {
+            show: false
+          },
+          emphasis: {
+            scale: true,
+            scaleSize: 10,
+            itemStyle: {
+              shadowBlur: 10,
+              shadowOffsetX: 0,
+              shadowColor: 'rgba(0, 0, 0, 0.5)'
+            }
+          }
+        }
+      ]
+    };
   };
 
   if (loading) {
@@ -157,8 +251,38 @@ const MarketOrders: React.FC = () => {
       <Typography variant="h4" component="h1" gutterBottom>
         Market Orders
       </Typography>
-      {renderOrdersTable(sellOrders, 'Sell Orders')}
-      {renderOrdersTable(buyOrders, 'Buy Orders')}
+
+      {/* Sell Orders Section */}
+      <Box sx={{ mb: 6 }}>
+        {/* Sell Orders Chart */}
+        <Box sx={{ mb: 4, height: 650 }}>
+          <Typography variant="h6" gutterBottom>
+            Sell Orders Distribution
+          </Typography>
+          <ReactECharts 
+            option={getChartOptions(prepareChartData(sellOrders), 'Sell Orders')} 
+            style={{ height: '100%', width: '100%' }}
+          />
+        </Box>
+        {/* Sell Orders Table */}
+        {renderOrdersTable(sellOrders, 'Sell Orders')}
+      </Box>
+
+      {/* Buy Orders Section */}
+      <Box sx={{ mb: 6 }}>
+        {/* Buy Orders Chart */}
+        <Box sx={{ mb: 4, height: 650 }}>
+          <Typography variant="h6" gutterBottom>
+            Buy Orders Distribution
+          </Typography>
+          <ReactECharts 
+            option={getChartOptions(prepareChartData(buyOrders), 'Buy Orders')} 
+            style={{ height: '100%', width: '100%' }}
+          />
+        </Box>
+        {/* Buy Orders Table */}
+        {renderOrdersTable(buyOrders, 'Buy Orders')}
+      </Box>
     </Box>
   );
 };
