@@ -1,4 +1,30 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2025 VaporSea
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+
 import React, { useState, useEffect, useRef, ReactNode } from 'react';
+import { useVaporSeaIndustry } from '../context/VaporSeaIndustryContext';
 import {
   Box,
   Table,
@@ -33,13 +59,11 @@ interface ItemResponse {
 }
 
 const Items: React.FC = () => {
+  const { itemsPage, setItemsPage, itemsPageSize, setItemsPageSize, itemsSearchField, setItemsSearchField } = useVaporSeaIndustry();
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(20);
   const [totalElements, setTotalElements] = useState(0);
-  const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const searchFieldRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -68,45 +92,45 @@ const Items: React.FC = () => {
   // Update debounced search value after delay
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedSearch(search);
+      setDebouncedSearch(itemsSearchField);
     }, 300);
 
     return () => {
       clearTimeout(timer);
     };
-  }, [search]);
+  }, [itemsSearchField]);
 
   // Fetch items when debounced search changes
   useEffect(() => {
-    fetchItems(page, rowsPerPage, debouncedSearch);
-  }, [page, rowsPerPage, debouncedSearch]);
+    fetchItems(itemsPage, itemsPageSize, debouncedSearch);
+  }, [itemsPage, itemsPageSize, debouncedSearch]);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(event.target.value);
-    setPage(0); // Reset to first page when search changes
+    setItemsSearchField(event.target.value);
+    setItemsPage(0); // Reset to first page when search changes
   };
 
   const handleClearSearch = () => {
-    setSearch('');
+    setItemsSearchField('');
     // Focus the search field after clearing
     searchFieldRef.current?.focus();
   };
 
   const handleChangePage = (_event: unknown, newPage: number) => {
-    setPage(newPage);
+    setItemsPage(newPage);
   };
 
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    setItemsPageSize(parseInt(event.target.value, 10));
+    setItemsPage(0);
   };
 
   const parseDescription = (text: string | null) => {
     if (!text) return '-';
-    
+
     // First replace \r\n with newlines
     const textWithNewlines = text.replace(/\\r\\n/g, '\n');
-    
+
     // Replace <a href=showinfo:ID>Text</a> with links
     const linkRegex = /<a href=showinfo:(\d+)>([^<]+)<\/a>/g;
     const parts: (string | ReactNode)[] = [];
@@ -118,7 +142,7 @@ const Items: React.FC = () => {
       if (match.index > lastIndex) {
         parts.push(textWithNewlines.substring(lastIndex, match.index));
       }
-      
+
       // Add the link
       const typeId = match[1];
       const linkText = match[2];
@@ -132,7 +156,7 @@ const Items: React.FC = () => {
           {linkText}
         </Link>
       );
-      
+
       lastIndex = match.index + match[0].length;
     }
 
@@ -172,7 +196,7 @@ const Items: React.FC = () => {
           fullWidth
           variant="outlined"
           placeholder="Search items..."
-          value={search}
+          value={itemsSearchField}
           onChange={handleSearchChange}
           autoFocus
           InputProps={{
@@ -181,7 +205,7 @@ const Items: React.FC = () => {
                 <SearchIcon />
               </InputAdornment>
             ),
-            endAdornment: search && (
+            endAdornment: itemsSearchField && (
               <InputAdornment position="end">
                 <IconButton onClick={handleClearSearch} edge="end">
                   <ClearIcon />
@@ -237,9 +261,9 @@ const Items: React.FC = () => {
       <TablePagination
         component="div"
         count={totalElements}
-        page={page}
+        page={itemsPage}
         onPageChange={handleChangePage}
-        rowsPerPage={rowsPerPage}
+        rowsPerPage={itemsPageSize}
         onRowsPerPageChange={handleChangeRowsPerPage}
         rowsPerPageOptions={[10, 20, 50, 100]}
       />
