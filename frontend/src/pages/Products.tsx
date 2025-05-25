@@ -23,7 +23,7 @@
  */
 
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useVaporSeaIndustry } from '../context/VaporSeaIndustryContext';
 import {
@@ -45,9 +45,17 @@ import {
   IconButton,
   Tooltip,
   SelectChangeEvent,
-  Button
+  Button,
+  TextField,
+  InputAdornment,
+  TableSortLabel
 } from '@mui/material';
-import { Settings as SettingsIcon, Add as AddIcon } from '@mui/icons-material';
+import { 
+  Settings as SettingsIcon, 
+  Add as AddIcon,
+  Search as SearchIcon,
+  Clear as ClearIcon 
+} from '@mui/icons-material';
 import AddProductDialog from '../components/AddProductDialog.tsx';
 
 interface Product {
@@ -66,17 +74,39 @@ interface ProductResponse {
 
 export const Products: React.FC = () => {
   const navigate = useNavigate();
-  const { productsPage, setProductsPage, productsPageSize, setProductsPageSize } = useVaporSeaIndustry();
+  const { 
+    productsPage, 
+    setProductsPage, 
+    productsPageSize, 
+    setProductsPageSize,
+    productsFilter,
+    setProductsFilter
+  } = useVaporSeaIndustry();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalElements, setTotalElements] = useState(0);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [sortOrder, setSortOrder] = useState<{ field: keyof Product; direction: 'asc' | 'desc' }>({ 
+    field: 'name', 
+    direction: 'asc' 
+  });
+
+  const searchFieldRef = useRef<HTMLInputElement>(null);
 
   const fetchProducts = async (page: number, pageSize: number) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/product?page=${page}&pageSize=${pageSize}`);
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        pageSize: pageSize.toString()
+      });
+
+      if (productsFilter) {
+        queryParams.append('search', productsFilter);
+      }
+
+      const response = await fetch(`/api/product?${queryParams.toString()}`);
       if (!response.ok) {
         throw new Error('Failed to fetch products');
       }
@@ -92,7 +122,7 @@ export const Products: React.FC = () => {
 
   useEffect(() => {
     fetchProducts(productsPage, productsPageSize);
-  }, [productsPage, productsPageSize]);
+  }, [productsPage, productsPageSize, productsFilter]);
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setProductsPage(newPage);
@@ -106,6 +136,25 @@ export const Products: React.FC = () => {
   const handleTablePaginationRowsPerPageChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setProductsPageSize(parseInt(event.target.value, 10));
     setProductsPage(0);
+  };
+
+  const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setProductsFilter(event.target.value);
+    setProductsPage(0); // Reset to first page when filter changes
+  };
+
+  const handleClearSearch = () => {
+    setProductsFilter('');
+    setTimeout(() => {
+      searchFieldRef.current?.focus();
+    }, 0);
+  };
+
+  const handleSort = (field: keyof Product) => {
+    setSortOrder(prev => ({
+      field,
+      direction: prev.field === field && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
   };
 
   if (loading) {
@@ -168,18 +217,105 @@ export const Products: React.FC = () => {
         </Box>
       </Box>
 
+      <Box sx={{ mb: 2 }}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Filter by name..."
+          value={productsFilter}
+          onChange={handleFilterChange}
+          inputRef={searchFieldRef}
+          sx={{
+            backgroundColor: '#1a1a1a',
+            '& .MuiOutlinedInput-root': {
+              color: 'white',
+              '& fieldset': {
+                borderColor: '#333',
+              },
+              '&:hover fieldset': {
+                borderColor: '#444',
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: '#666',
+              },
+            },
+            '& .MuiInputLabel-root': {
+              color: 'white',
+            },
+          }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: 'white' }} />
+              </InputAdornment>
+            ),
+            endAdornment: productsFilter && (
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={handleClearSearch}
+                  size="small"
+                  sx={{ color: 'white', '&:hover': { color: '#ccc' } }}
+                >
+                  <ClearIcon />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+      </Box>
+
       <TableContainer component={Paper} sx={{ mb: 2 }}>
         <Table>
           <TableHead>
             <TableRow>
               <TableCell>Icon</TableCell>
-              <TableCell>Name</TableCell>
+              <TableCell>
+                <TableSortLabel
+                  active={sortOrder.field === 'name'}
+                  direction={sortOrder.field === 'name' ? sortOrder.direction : 'asc'}
+                  onClick={() => handleSort('name')}
+                  sx={{
+                    color: 'white !important',
+                    '& .MuiTableSortLabel-icon': {
+                      color: 'white !important'
+                    }
+                  }}
+                >
+                  Name
+                </TableSortLabel>
+              </TableCell>
               <TableCell align="right">Description</TableCell>
-              <TableCell align="right">Cost</TableCell>
+              <TableCell align="right">
+                <TableSortLabel
+                  active={sortOrder.field === 'cost'}
+                  direction={sortOrder.field === 'cost' ? sortOrder.direction : 'asc'}
+                  onClick={() => handleSort('cost')}
+                  sx={{
+                    color: 'white !important',
+                    '& .MuiTableSortLabel-icon': {
+                      color: 'white !important'
+                    }
+                  }}
+                >
+                  Cost
+                </TableSortLabel>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {products.map((product) => (
+            {[...products]
+              .sort((a, b) => {
+                const aValue = a[sortOrder.field];
+                const bValue = b[sortOrder.field];
+                const multiplier = sortOrder.direction === 'asc' ? 1 : -1;
+
+                if (typeof aValue === 'string' && typeof bValue === 'string') {
+                  return aValue.localeCompare(bValue) * multiplier;
+                }
+
+                return ((aValue as number) - (bValue as number)) * multiplier;
+              })
+              .map((product) => (
               <TableRow 
                 key={product.itemId}
                 hover

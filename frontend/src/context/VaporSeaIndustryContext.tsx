@@ -48,6 +48,8 @@ interface VaporSeaIndustryContextType {
   setProductsPage: (page: number) => void;
   productsPageSize: number;
   setProductsPageSize: (pageSize: number) => void;
+  productsFilter: string;
+  setProductsFilter: (filter: string) => void;
 
   // New state for Items -> Item
   itemsPage: number;
@@ -95,6 +97,7 @@ export const VaporSeaIndustryProvider: React.FC<VaporSeaIndustryProviderProps> =
   // New state for Products -> Items
   const [productsPage, setProductsPage] = useState(0);
   const [productsPageSize, setProductsPageSize] = useState(20);
+  const [productsFilter, setProductsFilter] = useState('');
 
   // New state for Items -> Item
   const [itemsPage, setItemsPage] = useState(0);
@@ -175,6 +178,8 @@ export const VaporSeaIndustryProvider: React.FC<VaporSeaIndustryProviderProps> =
         setProductsPage,
         productsPageSize,
         setProductsPageSize,
+        productsFilter,
+        setProductsFilter,
 
         // New values for Items -> Item
         itemsPage,
