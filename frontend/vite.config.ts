@@ -36,11 +36,6 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       },
-      '/js-api/blueprint': {
-        target: 'https://www.fuzzwork.co.uk/',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/js-api\/blueprint/, '')
-      },
       '/js-api': {
         target: 'http://localhost:3001',
         changeOrigin: true,
