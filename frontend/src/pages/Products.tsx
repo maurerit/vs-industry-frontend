@@ -38,20 +38,13 @@ import {
   TablePagination,
   Typography,
   CircularProgress,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   IconButton,
-  Tooltip,
-  SelectChangeEvent,
   Button,
   TextField,
   InputAdornment,
   TableSortLabel
 } from '@mui/material';
-import { 
-  Settings as SettingsIcon, 
+import {
   Add as AddIcon,
   Search as SearchIcon,
   Clear as ClearIcon 
@@ -128,11 +121,6 @@ export const Products: React.FC = () => {
     setProductsPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event: SelectChangeEvent<number>) => {
-    setProductsPageSize(Number(event.target.value));
-    setProductsPage(0);
-  };
-
   const handleTablePaginationRowsPerPageChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setProductsPageSize(parseInt(event.target.value, 10));
     setProductsPage(0);
@@ -179,42 +167,13 @@ export const Products: React.FC = () => {
         <Typography variant="h4" component="h1">
           Products
         </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={() => setIsAddDialogOpen(true)}
-          >
-            Configure Product
-          </Button>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Page Size</InputLabel>
-            <Select
-              value={productsPageSize}
-              label="Page Size"
-              onChange={handleChangeRowsPerPage}
-            >
-              <MenuItem value={10}>10</MenuItem>
-              <MenuItem value={20}>20</MenuItem>
-              <MenuItem value={50}>50</MenuItem>
-              <MenuItem value={100}>100</MenuItem>
-            </Select>
-          </FormControl>
-          <Tooltip title="Configure Products">
-            <IconButton 
-              onClick={() => navigate('/products/configure')}
-              sx={{ 
-                color: 'white',
-                '&:hover': { 
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)' 
-                }
-              }}
-            >
-              <SettingsIcon />
-            </IconButton>
-          </Tooltip>
-        </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => setIsAddDialogOpen(true)}
+        >
+          Configure Product
+        </Button>
       </Box>
 
       <Box sx={{ mb: 2 }}>
@@ -362,4 +321,4 @@ export const Products: React.FC = () => {
       />
     </Box>
   );
-}; 
+};
