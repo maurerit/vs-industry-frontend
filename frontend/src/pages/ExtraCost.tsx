@@ -92,6 +92,7 @@ const ExtraCost: React.FC = () => {
   const [searchResults, setSearchResults] = useState<SearchItem[]>([]);
   const [searching, setSearching] = useState(false);
   const searchItemRef = useRef<HTMLInputElement>(null);
+  const costFieldRef = useRef<HTMLInputElement>(null);
 
   const fetchCosts = async (page: number, pageSize: number) => {
     try {
@@ -124,7 +125,7 @@ const ExtraCost: React.FC = () => {
     try {
       setSavingId(itemId);
       const numericValue = parseFloat(editValue);
-      
+
       if (isNaN(numericValue)) {
         throw new Error('Invalid cost value');
       }
@@ -208,6 +209,19 @@ const ExtraCost: React.FC = () => {
     }
   }, [isAddingNew]);
 
+  // Focus and select text in the cost field when edit mode is activated
+  useEffect(() => {
+    if (editingId !== null && costFieldRef.current) {
+      // Small timeout to ensure the field is rendered before focusing
+      setTimeout(() => {
+        if (costFieldRef.current) {
+          costFieldRef.current.focus();
+          costFieldRef.current.select();
+        }
+      }, 50);
+    }
+  }, [editingId]);
+
   const handleAddNew = () => {
     setIsAddingNew(true);
     setNewItemSearch('');
@@ -230,7 +244,7 @@ const ExtraCost: React.FC = () => {
     try {
       setSavingId(-1); // Use -1 to indicate saving new item
       const numericValue = parseFloat(newItemCost);
-      
+
       if (isNaN(numericValue)) {
         throw new Error('Invalid cost value');
       }
@@ -258,7 +272,7 @@ const ExtraCost: React.FC = () => {
         cost: numericValue,
         costType: newItemCostType
       }]);
-      
+
       setIsAddingNew(false);
       setNewItemSearch('');
       setNewItemCost('');
@@ -420,6 +434,13 @@ const ExtraCost: React.FC = () => {
                       onChange={(e) => setEditValue(e.target.value)}
                       size="small"
                       sx={{ width: 150 }}
+                      inputRef={costFieldRef}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && savingId !== cost.itemId) {
+                          e.preventDefault();
+                          handleSave(cost.itemId);
+                        }
+                      }}
                     />
                   ) : (
                     cost.cost.toLocaleString()
@@ -433,6 +454,12 @@ const ExtraCost: React.FC = () => {
                       size="small"
                       sx={{ width: 150 }}
                       placeholder="User definable"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && savingId !== cost.itemId) {
+                          e.preventDefault();
+                          handleSave(cost.itemId);
+                        }
+                      }}
                     />
                   ) : (
                     cost.costType || ''
