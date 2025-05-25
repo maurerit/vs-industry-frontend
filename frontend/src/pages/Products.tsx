@@ -84,8 +84,27 @@ export const Products: React.FC = () => {
     field: 'name', 
     direction: 'asc' 
   });
+  const [debouncedFilter, setDebouncedFilter] = useState(productsFilter);
 
   const searchFieldRef = useRef<HTMLInputElement>(null);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounce filter changes
+  useEffect(() => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    debounceTimeoutRef.current = setTimeout(() => {
+      setDebouncedFilter(productsFilter);
+    }, 300); // 300ms delay
+
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, [productsFilter]);
 
   const fetchProducts = async (page: number, pageSize: number) => {
     try {
@@ -95,8 +114,8 @@ export const Products: React.FC = () => {
         pageSize: pageSize.toString()
       });
 
-      if (productsFilter) {
-        queryParams.append('search', productsFilter);
+      if (debouncedFilter) {
+        queryParams.append('search', debouncedFilter);
       }
 
       const response = await fetch(`/api/product?${queryParams.toString()}`);
@@ -115,7 +134,7 @@ export const Products: React.FC = () => {
 
   useEffect(() => {
     fetchProducts(productsPage, productsPageSize);
-  }, [productsPage, productsPageSize, productsFilter]);
+  }, [productsPage, productsPageSize, debouncedFilter]);
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setProductsPage(newPage);
