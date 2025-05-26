@@ -74,16 +74,21 @@ interface SearchResponse {
 }
 
 const ExtraCost: React.FC = () => {
+  // Helper function to generate a unique key for each cost item based on itemId and costType
+  const getCostKey = (cost: ExtraCost): string => {
+    return `${cost.itemId}:${cost.costType || 'default'}`;
+  };
+
   const [costs, setCosts] = useState<ExtraCost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalElements, setTotalElements] = useState(0);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>('');
   const [editCostType, setEditCostType] = useState<string>('');
-  const [savingId, setSavingId] = useState<number | null>(null);
+  const [savingKey, setSavingKey] = useState<string | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [newItemSearch, setNewItemSearch] = useState('');
   const [newItemCost, setNewItemCost] = useState('');
@@ -116,14 +121,15 @@ const ExtraCost: React.FC = () => {
   }, [page, rowsPerPage]);
 
   const handleEdit = (cost: ExtraCost) => {
-    setEditingId(cost.itemId);
+    setEditingKey(getCostKey(cost));
     setEditValue(cost.cost.toString());
     setEditCostType(cost.costType || '');
   };
 
-  const handleSave = async (itemId: number) => {
+  const handleSave = async (cost: ExtraCost) => {
     try {
-      setSavingId(itemId);
+      const costKey = getCostKey(cost);
+      setSavingKey(costKey);
       const numericValue = parseFloat(editValue);
 
       if (isNaN(numericValue)) {
@@ -136,7 +142,7 @@ const ExtraCost: React.FC = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          itemId: itemId,
+          itemId: cost.itemId,
           cost: numericValue,
           costType: editCostType
         }),
@@ -147,19 +153,19 @@ const ExtraCost: React.FC = () => {
       }
 
       // Update the local state with the new value
-      setCosts(costs.map(cost => 
-        cost.itemId === itemId ? { ...cost, cost: numericValue, costType: editCostType } : cost
+      setCosts(costs.map(c => 
+        getCostKey(c) === costKey ? { ...c, cost: numericValue, costType: editCostType } : c
       ));
-      setEditingId(null);
+      setEditingKey(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred while saving');
     } finally {
-      setSavingId(null);
+      setSavingKey(null);
     }
   };
 
   const handleCancel = () => {
-    setEditingId(null);
+    setEditingKey(null);
     setEditValue('');
     setEditCostType('');
   };
@@ -211,7 +217,7 @@ const ExtraCost: React.FC = () => {
 
   // Focus and select text in the cost field when edit mode is activated
   useEffect(() => {
-    if (editingId !== null && costFieldRef.current) {
+    if (editingKey !== null && costFieldRef.current) {
       // Small timeout to ensure the field is rendered before focusing
       setTimeout(() => {
         if (costFieldRef.current) {
@@ -220,7 +226,7 @@ const ExtraCost: React.FC = () => {
         }
       }, 50);
     }
-  }, [editingId]);
+  }, [editingKey]);
 
   const handleAddNew = () => {
     setIsAddingNew(true);
@@ -242,7 +248,7 @@ const ExtraCost: React.FC = () => {
     if (!selectedItem || !newItemCost) return;
 
     try {
-      setSavingId(-1); // Use -1 to indicate saving new item
+      setSavingKey('new');
       const numericValue = parseFloat(newItemCost);
 
       if (isNaN(numericValue)) {
@@ -281,7 +287,7 @@ const ExtraCost: React.FC = () => {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred while saving');
     } finally {
-      setSavingId(null);
+      setSavingKey(null);
     }
   };
 
@@ -336,7 +342,7 @@ const ExtraCost: React.FC = () => {
         <Paper 
           sx={{ p: 2, mb: 3 }}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && selectedItem && newItemCost && savingId !== -1) {
+            if (e.key === 'Enter' && selectedItem && newItemCost && savingKey !== 'new') {
               e.preventDefault();
               handleSaveNew();
             }
@@ -396,7 +402,7 @@ const ExtraCost: React.FC = () => {
               variant="contained"
               startIcon={<SaveIcon />}
               onClick={handleSaveNew}
-              disabled={savingId === -1}
+              disabled={savingKey === 'new'}
             >
               Save
             </Button>
@@ -422,76 +428,79 @@ const ExtraCost: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {costs.map((cost) => (
-              <TableRow key={cost.itemId}>
-                <TableCell>
-                  {renderItemWithIcon(cost)}
-                </TableCell>
-                <TableCell align="right">
-                  {editingId === cost.itemId ? (
-                    <TextField
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      size="small"
-                      sx={{ width: 150 }}
-                      inputRef={costFieldRef}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && savingId !== cost.itemId) {
-                          e.preventDefault();
-                          handleSave(cost.itemId);
-                        }
-                      }}
-                    />
-                  ) : (
-                    cost.cost.toLocaleString()
-                  )}
-                </TableCell>
-                <TableCell align="right">
-                  {editingId === cost.itemId ? (
-                    <TextField
-                      value={editCostType}
-                      onChange={(e) => setEditCostType(e.target.value)}
-                      size="small"
-                      sx={{ width: 150 }}
-                      placeholder="User definable"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && savingId !== cost.itemId) {
-                          e.preventDefault();
-                          handleSave(cost.itemId);
-                        }
-                      }}
-                    />
-                  ) : (
-                    cost.costType || ''
-                  )}
-                </TableCell>
-                <TableCell align="right">
-                  {editingId === cost.itemId ? (
-                    <>
-                      <Tooltip title="Save">
-                        <IconButton
-                          onClick={() => handleSave(cost.itemId)}
-                          disabled={savingId === cost.itemId}
-                        >
-                          <SaveIcon />
+            {costs.map((cost) => {
+              const costKey = getCostKey(cost);
+              return (
+                <TableRow key={costKey}>
+                  <TableCell>
+                    {renderItemWithIcon(cost)}
+                  </TableCell>
+                  <TableCell align="right">
+                    {editingKey === costKey ? (
+                      <TextField
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        size="small"
+                        sx={{ width: 150 }}
+                        inputRef={costFieldRef}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && savingKey !== costKey) {
+                            e.preventDefault();
+                            handleSave(cost);
+                          }
+                        }}
+                      />
+                    ) : (
+                      cost.cost.toLocaleString()
+                    )}
+                  </TableCell>
+                  <TableCell align="right">
+                    {editingKey === costKey ? (
+                      <TextField
+                        value={editCostType}
+                        onChange={(e) => setEditCostType(e.target.value)}
+                        size="small"
+                        sx={{ width: 150 }}
+                        placeholder="User definable"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && savingKey !== costKey) {
+                            e.preventDefault();
+                            handleSave(cost);
+                          }
+                        }}
+                      />
+                    ) : (
+                      cost.costType || ''
+                    )}
+                  </TableCell>
+                  <TableCell align="right">
+                    {editingKey === costKey ? (
+                      <>
+                        <Tooltip title="Save">
+                          <IconButton
+                            onClick={() => handleSave(cost)}
+                            disabled={savingKey === costKey}
+                          >
+                            <SaveIcon />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Cancel">
+                          <IconButton onClick={handleCancel}>
+                            <CancelIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </>
+                    ) : (
+                      <Tooltip title="Edit">
+                        <IconButton onClick={() => handleEdit(cost)}>
+                          <EditIcon />
                         </IconButton>
                       </Tooltip>
-                      <Tooltip title="Cancel">
-                        <IconButton onClick={handleCancel}>
-                          <CancelIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </>
-                  ) : (
-                    <Tooltip title="Edit">
-                      <IconButton onClick={() => handleEdit(cost)}>
-                        <EditIcon />
-                      </IconButton>
-                    </Tooltip>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>
@@ -509,4 +518,4 @@ const ExtraCost: React.FC = () => {
   );
 };
 
-export default ExtraCost; 
+export default ExtraCost;
