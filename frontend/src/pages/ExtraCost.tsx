@@ -80,7 +80,7 @@ const ExtraCost: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalElements, setTotalElements] = useState(0);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingItem, setEditingItem] = useState<{itemId: number, costType: string} | null>(null);
   const [editValue, setEditValue] = useState<string>('');
   const [editCostType, setEditCostType] = useState<string>('');
   const [savingId, setSavingId] = useState<number | null>(null);
@@ -116,12 +116,15 @@ const ExtraCost: React.FC = () => {
   }, [page, rowsPerPage]);
 
   const handleEdit = (cost: ExtraCost) => {
-    setEditingId(cost.itemId);
+    setEditingItem({
+      itemId: cost.itemId,
+      costType: cost.costType || ''
+    });
     setEditValue(cost.cost.toString());
     setEditCostType(cost.costType || '');
   };
 
-  const handleSave = async (itemId: number) => {
+  const handleSave = async (itemId: number, costType: string) => {
     try {
       setSavingId(itemId);
       const numericValue = parseFloat(editValue);
@@ -148,9 +151,9 @@ const ExtraCost: React.FC = () => {
 
       // Update the local state with the new value
       setCosts(costs.map(cost => 
-        cost.itemId === itemId ? { ...cost, cost: numericValue, costType: editCostType } : cost
+        cost.itemId === itemId && cost.costType === costType ? { ...cost, cost: numericValue, costType: editCostType } : cost
       ));
-      setEditingId(null);
+      setEditingItem(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred while saving');
     } finally {
@@ -159,7 +162,7 @@ const ExtraCost: React.FC = () => {
   };
 
   const handleCancel = () => {
-    setEditingId(null);
+    setEditingItem(null);
     setEditValue('');
     setEditCostType('');
   };
@@ -211,7 +214,7 @@ const ExtraCost: React.FC = () => {
 
   // Focus and select text in the cost field when edit mode is activated
   useEffect(() => {
-    if (editingId !== null && costFieldRef.current) {
+    if (editingItem !== null && costFieldRef.current) {
       // Small timeout to ensure the field is rendered before focusing
       setTimeout(() => {
         if (costFieldRef.current) {
@@ -220,7 +223,7 @@ const ExtraCost: React.FC = () => {
         }
       }, 50);
     }
-  }, [editingId]);
+  }, [editingItem]);
 
   const handleAddNew = () => {
     setIsAddingNew(true);
@@ -428,7 +431,7 @@ const ExtraCost: React.FC = () => {
                   {renderItemWithIcon(cost)}
                 </TableCell>
                 <TableCell align="right">
-                  {editingId === cost.itemId ? (
+                  {editingItem && editingItem.itemId === cost.itemId && editingItem.costType === cost.costType ? (
                     <TextField
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
@@ -438,7 +441,7 @@ const ExtraCost: React.FC = () => {
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && savingId !== cost.itemId) {
                           e.preventDefault();
-                          handleSave(cost.itemId);
+                          handleSave(cost.itemId, cost.costType || '');
                         }
                       }}
                     />
@@ -447,7 +450,7 @@ const ExtraCost: React.FC = () => {
                   )}
                 </TableCell>
                 <TableCell align="right">
-                  {editingId === cost.itemId ? (
+                  {editingItem && editingItem.itemId === cost.itemId && editingItem.costType === cost.costType ? (
                     <TextField
                       value={editCostType}
                       onChange={(e) => setEditCostType(e.target.value)}
@@ -457,7 +460,7 @@ const ExtraCost: React.FC = () => {
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && savingId !== cost.itemId) {
                           e.preventDefault();
-                          handleSave(cost.itemId);
+                          handleSave(cost.itemId, cost.costType || '');
                         }
                       }}
                     />
@@ -466,11 +469,11 @@ const ExtraCost: React.FC = () => {
                   )}
                 </TableCell>
                 <TableCell align="right">
-                  {editingId === cost.itemId ? (
+                  {editingItem && editingItem.itemId === cost.itemId && editingItem.costType === cost.costType ? (
                     <>
                       <Tooltip title="Save">
                         <IconButton
-                          onClick={() => handleSave(cost.itemId)}
+                          onClick={() => handleSave(cost.itemId, cost.costType || '')}
                           disabled={savingId === cost.itemId}
                         >
                           <SaveIcon />
