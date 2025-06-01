@@ -207,7 +207,7 @@ export const Product: React.FC = () => {
                   {/* Extra Costs */}
                   {product.transactionCosts.extraCosts.map((extraCost) => (
                     <TableRow key={`${extraCost.itemId}-${extraCost.costType}`}>
-                      <TableCell sx={{ color: 'white', paddingLeft: 4 }}>Admin - {extraCost.costType}</TableCell>
+                      <TableCell sx={{ color: 'white', paddingLeft: 4 }}>{extraCost.costType}</TableCell>
                       <TableCell />
                       <TableCell colSpan={2} align="center" sx={{ color: 'white' }}>
                         {extraCost.cost.toLocaleString()} ISK
