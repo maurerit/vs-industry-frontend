@@ -54,7 +54,7 @@ export const Product: React.FC = () => {
       try {
         setIsLoading(true);
         setError(null);
-        
+
         const response = await fetch(`/api/product/${id}`, {
           credentials: 'include'
         });
@@ -129,6 +129,9 @@ export const Product: React.FC = () => {
           Product ID: {product.blueprintDetails.productTypeID}
         </Typography>
         <Typography variant="body1" color="text.secondary" gutterBottom>
+          Product Make Type ID: {product.blueprintDetails.productMakeTypeID}
+        </Typography>
+        <Typography variant="body1" color="text.secondary" gutterBottom>
           Max Production Limit: {product.blueprintDetails.maxProductionLimit}
         </Typography>
         {product.blueprintDetails.productQuantity && (
@@ -136,7 +139,7 @@ export const Product: React.FC = () => {
             Product Quantity: {product.blueprintDetails.productQuantity}
           </Typography>
         )}
-        
+
         {product.activityMaterials.invention.length === 0 && (
           <>
             <Typography variant="h5" sx={{ mt: 4, mb: 2 }}>
@@ -149,6 +152,7 @@ export const Product: React.FC = () => {
                     <TableCell sx={{ color: 'white' }}>Material</TableCell>
                     <TableCell align="right" sx={{ color: 'white' }}>Quantity</TableCell>
                     <TableCell align="right" sx={{ color: 'white' }}>Price</TableCell>
+                    <TableCell align="right" sx={{ color: 'white' }}>Market Price</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -159,26 +163,110 @@ export const Product: React.FC = () => {
                       <TableCell align="right" sx={{ color: 'white' }}>
                         {material.price ? `${material.price.toLocaleString()} ISK` : '-'}
                       </TableCell>
+                      <TableCell align="right" sx={{ color: 'white' }}>
+                        {material.marketPrice ? `${material.marketPrice.toLocaleString()} ISK` : '-'}
+                      </TableCell>
                     </TableRow>
                   ))}
+
+                  {/* Blueprint Cost */}
+                  <TableRow>
+                    <TableCell colSpan={2} sx={{ color: 'white', fontWeight: 'bold' }}>Blueprint Cost</TableCell>
+                    <TableCell sx={{ color: 'white' }} />
+                    <TableCell sx={{ color: 'white' }} />
+                  </TableRow>
+                  <TableRow>
+                    <TableCell sx={{ color: 'white', paddingLeft: 4 }}>Blueprint</TableCell>
+                    <TableCell />
+                    <TableCell colSpan={2} align="center" sx={{ color: 'white' }}>
+                      {product.blueprintDetails.cost.toLocaleString()} ISK
+                    </TableCell>
+                  </TableRow>
+
+                  {/* Transaction Costs */}
+                  <TableRow>
+                    <TableCell colSpan={2} sx={{ color: 'white', fontWeight: 'bold' }}>Transaction Costs</TableCell>
+                    <TableCell sx={{ color: 'white' }} />
+                    <TableCell sx={{ color: 'white' }} />
+                  </TableRow>
+                  <TableRow>
+                    <TableCell sx={{ color: 'white', paddingLeft: 4 }}>Broker's Fee</TableCell>
+                    <TableCell />
+                    <TableCell colSpan={2} align="center" sx={{ color: 'white' }}>
+                      {product.transactionCosts.brokersFee.toLocaleString()} ISK
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell sx={{ color: 'white', paddingLeft: 4 }}>Sales Tax</TableCell>
+                    <TableCell />
+                    <TableCell colSpan={2} align="center" sx={{ color: 'white' }}>
+                      {product.transactionCosts.salesTax.toLocaleString()} ISK
+                    </TableCell>
+                  </TableRow>
+
+                  {/* Extra Costs */}
+                  {product.transactionCosts.extraCosts.map((extraCost) => (
+                    <TableRow key={`${extraCost.itemId}-${extraCost.costType}`}>
+                      <TableCell sx={{ color: 'white', paddingLeft: 4 }}>Admin - {extraCost.costType}</TableCell>
+                      <TableCell />
+                      <TableCell colSpan={2} align="center" sx={{ color: 'white' }}>
+                        {extraCost.cost.toLocaleString()} ISK
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
+                  {/* Total Cost */}
                   <TableRow>
                     <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Total Cost</TableCell>
                     <TableCell />
-                    <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>
-                      {product.activityMaterials.manufacturing
-                        .reduce((total, material) => total + (material.price || 0) * material.quantity, 0)
-                        .toLocaleString()} ISK
+                    <TableCell align="center" sx={{ color: 'white', fontWeight: 'bold' }}>
+                      {(
+                        product.activityMaterials.manufacturing
+                          .reduce((total, material) => total + (material.price || 0) * material.quantity, 0) +
+                        product.blueprintDetails.cost +
+                        product.transactionCosts.brokersFee +
+                        product.transactionCosts.salesTax +
+                        product.transactionCosts.extraCosts.reduce((total, cost) => total + cost.cost, 0)
+                      ).toLocaleString()} ISK
+                    </TableCell>
+                    <TableCell align="center" sx={{ color: 'white', fontWeight: 'bold' }}>
+                      {(
+                        product.activityMaterials.manufacturing
+                          .reduce((total, material) => total + (material.marketPrice || 0) * material.quantity, 0) +
+                        product.blueprintDetails.cost +
+                        product.transactionCosts.brokersFee +
+                        product.transactionCosts.salesTax +
+                        product.transactionCosts.extraCosts.reduce((total, cost) => total + cost.cost, 0)
+                      ).toLocaleString()} ISK
                     </TableCell>
                   </TableRow>
+
+                  {/* Cost per Unit */}
                   {product.blueprintDetails.maxProductionLimit > 1 && (
                     <TableRow>
                       <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Cost per Unit</TableCell>
                       <TableCell />
                       <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>
-                        {Math.round(product.activityMaterials.manufacturing
-                          .reduce((total, material) => total + (material.price || 0) * material.quantity, 0) 
-                          / product.blueprintDetails.maxProductionLimit)
-                          .toLocaleString()} ISK
+                        {Math.round(
+                          (product.activityMaterials.manufacturing
+                            .reduce((total, material) => total + (material.price || 0) * material.quantity, 0) +
+                          product.blueprintDetails.cost +
+                          product.transactionCosts.brokersFee +
+                          product.transactionCosts.salesTax +
+                          product.transactionCosts.extraCosts.reduce((total, cost) => total + cost.cost, 0)) 
+                          / product.blueprintDetails.maxProductionLimit
+                        ).toLocaleString()} ISK
+                      </TableCell>
+                      <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>
+                        {Math.round(
+                          (product.activityMaterials.manufacturing
+                            .reduce((total, material) => total + (material.marketPrice || 0) * material.quantity, 0) +
+                          product.blueprintDetails.cost +
+                          product.transactionCosts.brokersFee +
+                          product.transactionCosts.salesTax +
+                          product.transactionCosts.extraCosts.reduce((total, cost) => total + cost.cost, 0)) 
+                          / product.blueprintDetails.maxProductionLimit
+                        ).toLocaleString()} ISK
                       </TableCell>
                     </TableRow>
                   )}
@@ -200,6 +288,7 @@ export const Product: React.FC = () => {
                     <TableCell sx={{ color: 'white' }}>Material</TableCell>
                     <TableCell align="right" sx={{ color: 'white' }}>Quantity</TableCell>
                     <TableCell align="right" sx={{ color: 'white' }}>Price</TableCell>
+                    <TableCell align="right" sx={{ color: 'white' }}>Market Price</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -210,26 +299,92 @@ export const Product: React.FC = () => {
                       <TableCell align="right" sx={{ color: 'white' }}>
                         {material.price ? `${material.price.toLocaleString()} ISK` : '-'}
                       </TableCell>
+                      <TableCell align="right" sx={{ color: 'white' }}>
+                        {material.marketPrice ? `${material.marketPrice.toLocaleString()} ISK` : '-'}
+                      </TableCell>
                     </TableRow>
                   ))}
+
+                  {/* Transaction Costs */}
+                  <TableRow>
+                    <TableCell colSpan={2} sx={{ color: 'white', fontWeight: 'bold' }}>Transaction Costs</TableCell>
+                    <TableCell sx={{ color: 'white' }} />
+                    <TableCell sx={{ color: 'white' }} />
+                  </TableRow>
+                  <TableRow>
+                    <TableCell sx={{ color: 'white', paddingLeft: 4 }}>Broker's Fee</TableCell>
+                    <TableCell />
+                    <TableCell colSpan={2} align="right" sx={{ color: 'white' }}>
+                      {product.transactionCosts.brokersFee.toLocaleString()} ISK
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell sx={{ color: 'white', paddingLeft: 4 }}>Sales Tax</TableCell>
+                    <TableCell />
+                    <TableCell colSpan={2} align="right" sx={{ color: 'white' }}>
+                      {product.transactionCosts.salesTax.toLocaleString()} ISK
+                    </TableCell>
+                  </TableRow>
+
+                  {/* Extra Costs */}
+                  {product.transactionCosts.extraCosts.map((extraCost) => (
+                    <TableRow key={`${extraCost.itemId}-${extraCost.costType}`}>
+                      <TableCell sx={{ color: 'white', paddingLeft: 4 }}>{extraCost.name} ({extraCost.costType})</TableCell>
+                      <TableCell />
+                      <TableCell colSpan={2} align="right" sx={{ color: 'white' }}>
+                        {extraCost.cost.toLocaleString()} ISK
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
+                  {/* Total Cost */}
                   <TableRow>
                     <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Total Cost</TableCell>
                     <TableCell />
                     <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>
-                      {product.activityMaterials.invention
-                        .reduce((total, material) => total + (material.price || 0) * material.quantity, 0)
-                        .toLocaleString()} ISK
+                      {(
+                        product.activityMaterials.invention
+                          .reduce((total, material) => total + (material.price || 0) * material.quantity, 0) +
+                        product.transactionCosts.brokersFee +
+                        product.transactionCosts.salesTax +
+                        product.transactionCosts.extraCosts.reduce((total, cost) => total + cost.cost, 0)
+                      ).toLocaleString()} ISK
+                    </TableCell>
+                    <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>
+                      {(
+                        product.activityMaterials.invention
+                          .reduce((total, material) => total + (material.marketPrice || 0) * material.quantity, 0) +
+                        product.transactionCosts.brokersFee +
+                        product.transactionCosts.salesTax +
+                        product.transactionCosts.extraCosts.reduce((total, cost) => total + cost.cost, 0)
+                      ).toLocaleString()} ISK
                     </TableCell>
                   </TableRow>
+
+                  {/* Cost per Unit */}
                   {product.blueprintDetails.maxProductionLimit > 1 && (
                     <TableRow>
                       <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Cost per Unit</TableCell>
                       <TableCell />
                       <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>
-                        {Math.round(product.activityMaterials.invention
-                          .reduce((total, material) => total + (material.price || 0) * material.quantity, 0) 
-                          / product.blueprintDetails.maxProductionLimit)
-                          .toLocaleString()} ISK
+                        {Math.round(
+                          (product.activityMaterials.invention
+                            .reduce((total, material) => total + (material.price || 0) * material.quantity, 0) +
+                          product.transactionCosts.brokersFee +
+                          product.transactionCosts.salesTax +
+                          product.transactionCosts.extraCosts.reduce((total, cost) => total + cost.cost, 0)) 
+                          / product.blueprintDetails.maxProductionLimit
+                        ).toLocaleString()} ISK
+                      </TableCell>
+                      <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>
+                        {Math.round(
+                          (product.activityMaterials.invention
+                            .reduce((total, material) => total + (material.marketPrice || 0) * material.quantity, 0) +
+                          product.transactionCosts.brokersFee +
+                          product.transactionCosts.salesTax +
+                          product.transactionCosts.extraCosts.reduce((total, cost) => total + cost.cost, 0)) 
+                          / product.blueprintDetails.maxProductionLimit
+                        ).toLocaleString()} ISK
                       </TableCell>
                     </TableRow>
                   )}
@@ -251,6 +406,7 @@ export const Product: React.FC = () => {
                     <TableCell sx={{ color: 'white' }}>Material</TableCell>
                     <TableCell align="right" sx={{ color: 'white' }}>Quantity</TableCell>
                     <TableCell align="right" sx={{ color: 'white' }}>Price</TableCell>
+                    <TableCell align="right" sx={{ color: 'white' }}>Market Price</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -261,15 +417,65 @@ export const Product: React.FC = () => {
                       <TableCell align="right" sx={{ color: 'white' }}>
                         {material.price ? `${material.price.toLocaleString()} ISK` : '-'}
                       </TableCell>
+                      <TableCell align="right" sx={{ color: 'white' }}>
+                        {material.marketPrice ? `${material.marketPrice.toLocaleString()} ISK` : '-'}
+                      </TableCell>
                     </TableRow>
                   ))}
+
+                  {/* Transaction Costs */}
+                  <TableRow>
+                    <TableCell colSpan={2} sx={{ color: 'white', fontWeight: 'bold' }}>Transaction Costs</TableCell>
+                    <TableCell sx={{ color: 'white' }} />
+                    <TableCell sx={{ color: 'white' }} />
+                  </TableRow>
+                  <TableRow>
+                    <TableCell sx={{ color: 'white', paddingLeft: 4 }}>Broker's Fee</TableCell>
+                    <TableCell />
+                    <TableCell colSpan={2} align="right" sx={{ color: 'white' }}>
+                      {product.transactionCosts.brokersFee.toLocaleString()} ISK
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell sx={{ color: 'white', paddingLeft: 4 }}>Sales Tax</TableCell>
+                    <TableCell />
+                    <TableCell colSpan={2} align="right" sx={{ color: 'white' }}>
+                      {product.transactionCosts.salesTax.toLocaleString()} ISK
+                    </TableCell>
+                  </TableRow>
+
+                  {/* Extra Costs */}
+                  {product.transactionCosts.extraCosts.map((extraCost) => (
+                    <TableRow key={`${extraCost.itemId}-${extraCost.costType}`}>
+                      <TableCell sx={{ color: 'white', paddingLeft: 4 }}>{extraCost.name} ({extraCost.costType})</TableCell>
+                      <TableCell />
+                      <TableCell colSpan={2} align="right" sx={{ color: 'white' }}>
+                        {extraCost.cost.toLocaleString()} ISK
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
+                  {/* Total Cost */}
                   <TableRow>
                     <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Total Cost</TableCell>
                     <TableCell />
                     <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>
-                      {product.activityMaterials.copying
-                        .reduce((total, material) => total + (material.price || 0) * material.quantity, 0)
-                        .toLocaleString()} ISK
+                      {(
+                        product.activityMaterials.copying
+                          .reduce((total, material) => total + (material.price || 0) * material.quantity, 0) +
+                        product.transactionCosts.brokersFee +
+                        product.transactionCosts.salesTax +
+                        product.transactionCosts.extraCosts.reduce((total, cost) => total + cost.cost, 0)
+                      ).toLocaleString()} ISK
+                    </TableCell>
+                    <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>
+                      {(
+                        product.activityMaterials.copying
+                          .reduce((total, material) => total + (material.marketPrice || 0) * material.quantity, 0) +
+                        product.transactionCosts.brokersFee +
+                        product.transactionCosts.salesTax +
+                        product.transactionCosts.extraCosts.reduce((total, cost) => total + cost.cost, 0)
+                      ).toLocaleString()} ISK
                     </TableCell>
                   </TableRow>
                 </TableBody>
