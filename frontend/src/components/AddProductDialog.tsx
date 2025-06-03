@@ -23,7 +23,7 @@
  */
 
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
@@ -77,14 +77,18 @@ const AddProductDialog: React.FC<AddProductDialogProps> = ({ open, onClose }) =>
     }
   };
 
-  const debouncedFetch = debounce(fetchOptions, 300);
+  // Create a memoized debounced function using useCallback
+  const debouncedFetch = useCallback(
+    debounce(fetchOptions, 300),
+    [] // Empty dependency array ensures this is only created once
+  );
 
   useEffect(() => {
     debouncedFetch(searchTerm);
     return () => {
       debouncedFetch.cancel();
     };
-  }, [debouncedFetch, searchTerm]);
+  }, [searchTerm]); // Removed debouncedFetch from dependencies as it's memoized
 
   const handleAdd = () => {
     if (selectedOption) {

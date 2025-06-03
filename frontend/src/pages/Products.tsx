@@ -23,7 +23,7 @@
  */
 
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useVaporSeaIndustry } from '../context/VaporSeaIndustryContext';
 import {
@@ -49,6 +49,7 @@ import {
   Search as SearchIcon,
   Clear as ClearIcon 
 } from '@mui/icons-material';
+import { debounce } from 'lodash';
 import AddProductDialog from '../components/AddProductDialog.tsx';
 
 interface Product {
@@ -87,24 +88,24 @@ export const Products: React.FC = () => {
   const [debouncedFilter, setDebouncedFilter] = useState(productsFilter);
 
   const searchFieldRef = useRef<HTMLInputElement>(null);
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Debounce filter changes
+  // Create a memoized debounced function using lodash
+  const debouncedSetFilter = useCallback(
+    debounce((filter: string) => {
+      setDebouncedFilter(filter);
+    }, 300),
+    [] // Empty dependency array ensures this is only created once
+  );
+
+  // Update debouncedFilter when productsFilter changes
   useEffect(() => {
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
+    debouncedSetFilter(productsFilter);
 
-    debounceTimeoutRef.current = setTimeout(() => {
-      setDebouncedFilter(productsFilter);
-    }, 300); // 300ms delay
-
+    // Cleanup function to cancel any pending debounced calls when component unmounts
     return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
+      debouncedSetFilter.cancel();
     };
-  }, [productsFilter]);
+  }, [productsFilter]); // Removed debouncedSetFilter from dependencies as it's memoized
 
   const fetchProducts = async (page: number, pageSize: number) => {
     try {
