@@ -38,6 +38,7 @@ import {
   TableRow,
   Button,
 } from '@mui/material';
+import { formatIskAmount } from '../components/FormattingUtils';
 
 interface Skill {
   typeid: number;
@@ -188,7 +189,7 @@ const ConfigureProduct: React.FC = () => {
         <Typography>Tech Level: {blueprint.blueprintDetails.techLevel}</Typography>
         <Typography>Max Production Limit: {blueprint.blueprintDetails.maxProductionLimit}</Typography>
         <Typography>Product Quantity: {blueprint.blueprintDetails.productQuantity}</Typography>
-        <Typography>Adjusted Price: {blueprint.blueprintDetails.adjustedPrice.toLocaleString()} ISK</Typography>
+        <Typography>Adjusted Price: {formatIskAmount(blueprint.blueprintDetails.adjustedPrice)}</Typography>
       </Paper>
 
 
