@@ -51,6 +51,7 @@ import {
 } from '@mui/icons-material';
 import { debounce } from 'lodash';
 import AddProductDialog from '../components/AddProductDialog.tsx';
+import { formatIskAmount } from '../components/FormattingUtils';
 
 interface Product {
   itemId: number;
@@ -317,7 +318,7 @@ export const Products: React.FC = () => {
                   {product.description || '-'}
                 </TableCell>
                 <TableCell align="right">
-                  {product.cost.toLocaleString()} ISK
+                  {formatIskAmount(product.cost)}
                 </TableCell>
               </TableRow>
             ))}

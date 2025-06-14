@@ -23,7 +23,7 @@
  */
 
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
@@ -54,6 +54,8 @@ const AddProductDialog: React.FC<AddProductDialogProps> = ({ open, onClose }) =>
   const [options, setOptions] = useState<BlueprintOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedOption, setSelectedOption] = useState<BlueprintOption | null>(null);
+  const autocompleteRef = useRef<HTMLInputElement>(null);
+  const autocompleteContainerRef = useRef<HTMLDivElement>(null);
 
   const fetchOptions = async (term: string) => {
     if (!term) {
@@ -90,6 +92,27 @@ const AddProductDialog: React.FC<AddProductDialogProps> = ({ open, onClose }) =>
     };
   }, [searchTerm]); // Removed debouncedFetch from dependencies as it's memoized
 
+  // Focus on the input field when the dialog opens
+  useEffect(() => {
+    if (open) {
+      // Use setTimeout to ensure the dialog is fully rendered before focusing
+      setTimeout(() => {
+        // Try multiple approaches to ensure focus works
+        if (autocompleteRef.current) {
+          autocompleteRef.current.focus();
+        }
+
+        // Alternative approach: find the input element within the container
+        if (autocompleteContainerRef.current) {
+          const inputElement = autocompleteContainerRef.current.querySelector('input');
+          if (inputElement) {
+            inputElement.focus();
+          }
+        }
+      }, 300); // Increased timeout to ensure dialog is fully rendered
+    }
+  }, [open]);
+
   const handleAdd = () => {
     if (selectedOption) {
       // Navigate to ConfigureProduct with the selected type ID
@@ -105,6 +128,7 @@ const AddProductDialog: React.FC<AddProductDialogProps> = ({ open, onClose }) =>
       <DialogTitle>Add New Product</DialogTitle>
       <DialogContent>
         <Autocomplete
+          ref={autocompleteContainerRef}
           options={options}
           getOptionLabel={(option) => option.label || option.value}
           loading={loading}
@@ -112,12 +136,14 @@ const AddProductDialog: React.FC<AddProductDialogProps> = ({ open, onClose }) =>
           onChange={(_, newValue) => setSelectedOption(newValue)}
           inputValue={searchTerm}
           onInputChange={(_, newInputValue) => setSearchTerm(newInputValue)}
+          disablePortal // Ensure the dropdown is rendered within the container
           renderInput={(params) => (
             <TextField
               {...params}
               label="Search Blueprint"
               fullWidth
               margin="normal"
+              inputRef={autocompleteRef}
               InputProps={{
                 ...params.InputProps,
                 endAdornment: (
