@@ -143,7 +143,7 @@ export const Product: React.FC = () => {
         {product.activityMaterials.invention.length === 0 && (
           <>
             <Typography variant="h5" sx={{ mt: 4, mb: 2 }}>
-              Manufacturing Materials
+              Production Materials
             </Typography>
             <TableContainer>
               <Table>
@@ -156,7 +156,9 @@ export const Product: React.FC = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {product.activityMaterials.manufacturing.map((material) => (
+                  {(product.activityMaterials.reaction && product.activityMaterials.reaction.length > 0 
+                    ? product.activityMaterials.reaction 
+                    : product.activityMaterials.manufacturing).map((material) => (
                     <TableRow key={material.typeid}>
                       <TableCell sx={{ color: 'white' }}>{material.name}</TableCell>
                       <TableCell align="right" sx={{ color: 'white' }}>{material.quantity}</TableCell>
@@ -170,18 +172,22 @@ export const Product: React.FC = () => {
                   ))}
 
                   {/* Blueprint Cost */}
-                  <TableRow>
-                    <TableCell colSpan={2} sx={{ color: 'white', fontWeight: 'bold' }}>Blueprint Cost</TableCell>
-                    <TableCell sx={{ color: 'white' }} />
-                    <TableCell sx={{ color: 'white' }} />
-                  </TableRow>
-                  <TableRow>
-                    <TableCell sx={{ color: 'white', paddingLeft: 4 }}>Blueprint</TableCell>
-                    <TableCell />
-                    <TableCell colSpan={2} align="center" sx={{ color: 'white' }}>
-                      {product.blueprintDetails.cost.toLocaleString()} ISK
-                    </TableCell>
-                  </TableRow>
+                  {product.blueprintDetails.techLevel !== 1 && (
+                    <>
+                      <TableRow>
+                        <TableCell colSpan={2} sx={{ color: 'white', fontWeight: 'bold' }}>Blueprint Cost</TableCell>
+                        <TableCell sx={{ color: 'white' }} />
+                        <TableCell sx={{ color: 'white' }} />
+                      </TableRow>
+                      <TableRow>
+                        <TableCell sx={{ color: 'white', paddingLeft: 4 }}>Blueprint</TableCell>
+                        <TableCell />
+                        <TableCell colSpan={2} align="center" sx={{ color: 'white' }}>
+                          {product.blueprintDetails.cost.toLocaleString()} ISK
+                        </TableCell>
+                      </TableRow>
+                    </>
+                  )}
 
                   {/* Transaction Costs */}
                   <TableRow>
@@ -221,9 +227,11 @@ export const Product: React.FC = () => {
                     <TableCell />
                     <TableCell align="center" sx={{ color: 'white', fontWeight: 'bold' }}>
                       {(
-                        product.activityMaterials.manufacturing
+                        (product.activityMaterials.reaction && product.activityMaterials.reaction.length > 0
+                          ? product.activityMaterials.reaction
+                          : product.activityMaterials.manufacturing)
                           .reduce((total, material) => total + (material.price || 0) * material.quantity, 0) +
-                        product.blueprintDetails.cost +
+                        (product.blueprintDetails.techLevel !== 1 ? product.blueprintDetails.cost : 0) +
                         product.transactionCosts.brokersFee +
                         product.transactionCosts.salesTax +
                         product.transactionCosts.extraCosts.reduce((total, cost) => total + cost.cost, 0)
@@ -231,9 +239,11 @@ export const Product: React.FC = () => {
                     </TableCell>
                     <TableCell align="center" sx={{ color: 'white', fontWeight: 'bold' }}>
                       {(
-                        product.activityMaterials.manufacturing
+                        (product.activityMaterials.reaction && product.activityMaterials.reaction.length > 0
+                          ? product.activityMaterials.reaction
+                          : product.activityMaterials.manufacturing)
                           .reduce((total, material) => total + (material.marketPrice || 0) * material.quantity, 0) +
-                        product.blueprintDetails.cost +
+                        (product.blueprintDetails.techLevel !== 1 ? product.blueprintDetails.cost : 0) +
                         product.transactionCosts.brokersFee +
                         product.transactionCosts.salesTax +
                         product.transactionCosts.extraCosts.reduce((total, cost) => total + cost.cost, 0)
@@ -248,9 +258,11 @@ export const Product: React.FC = () => {
                       <TableCell />
                       <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>
                         {Math.round(
-                          (product.activityMaterials.manufacturing
+                          ((product.activityMaterials.reaction && product.activityMaterials.reaction.length > 0
+                            ? product.activityMaterials.reaction
+                            : product.activityMaterials.manufacturing)
                             .reduce((total, material) => total + (material.price || 0) * material.quantity, 0) +
-                          product.blueprintDetails.cost +
+                          (product.blueprintDetails.techLevel !== 1 ? product.blueprintDetails.cost : 0) +
                           product.transactionCosts.brokersFee +
                           product.transactionCosts.salesTax +
                           product.transactionCosts.extraCosts.reduce((total, cost) => total + cost.cost, 0)) 
@@ -259,9 +271,11 @@ export const Product: React.FC = () => {
                       </TableCell>
                       <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>
                         {Math.round(
-                          (product.activityMaterials.manufacturing
+                          ((product.activityMaterials.reaction && product.activityMaterials.reaction.length > 0
+                            ? product.activityMaterials.reaction
+                            : product.activityMaterials.manufacturing)
                             .reduce((total, material) => total + (material.marketPrice || 0) * material.quantity, 0) +
-                          product.blueprintDetails.cost +
+                          (product.blueprintDetails.techLevel !== 1 ? product.blueprintDetails.cost : 0) +
                           product.transactionCosts.brokersFee +
                           product.transactionCosts.salesTax +
                           product.transactionCosts.extraCosts.reduce((total, cost) => total + cost.cost, 0)) 

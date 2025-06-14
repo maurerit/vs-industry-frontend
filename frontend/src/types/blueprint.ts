@@ -47,6 +47,7 @@ export interface BlueprintData {
     productQuantity: number | null;
     productMakeTypeID: number;
     cost: number;
+    techLevel: number;
   };
   transactionCosts: {
     brokersFee: number;
@@ -57,5 +58,6 @@ export interface BlueprintData {
     manufacturing: Material[];
     invention: Material[];
     copying: Material[];
+    reaction?: Material[];
   };
 }
