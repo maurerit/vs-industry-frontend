@@ -23,41 +23,11 @@
  */
 
 
-export interface Material {
-  typeid: number;
-  name: string;
-  quantity: number;
-  maketype: string | null;
-  price: number | null;
-  marketPrice?: number;
-}
-
-export interface ExtraCost {
-  itemId: number;
-  name: string;
-  costType: string;
-  cost: number;
-}
-
-export interface BlueprintData {
-  blueprintDetails: {
-    maxProductionLimit: number;
-    productTypeID: number;
-    productTypeName: string;
-    productQuantity: number | null;
-    productMakeTypeID: number;
-    cost: number;
-    techLevel: number;
-  };
-  transactionCosts: {
-    brokersFee: number;
-    salesTax: number;
-    extraCosts: ExtraCost[];
-  };
-  activityMaterials: {
-    manufacturing: Material[];
-    invention: Material[];
-    copying: Material[];
-    reaction?: Material[];
-  };
-}
+/**
+ * Formats a number as an ISK amount with exactly 2 decimal places
+ * @param amount - The number to format
+ * @returns Formatted string with ISK suffix
+ */
+export const formatIskAmount = (amount: number): string => {
+  return `${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ISK`;
+};

@@ -36,9 +36,9 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Slider,
   Button,
 } from '@mui/material';
+import { formatIskAmount } from '../components/FormattingUtils';
 
 interface Skill {
   typeid: number;
@@ -94,7 +94,6 @@ const ConfigureProduct: React.FC = () => {
   const [blueprint, setBlueprint] = useState<BlueprintData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [meLevel, setMeLevel] = useState<number>(0);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -126,21 +125,8 @@ const ConfigureProduct: React.FC = () => {
       setSubmitting(true);
       setError(null);
 
-      // Create adjusted blueprint data
-      const adjustedBlueprint = {
-        ...blueprint,
-        activityMaterials: {
-          ...blueprint.activityMaterials,
-          '1': blueprint.activityMaterials['1'].map(material => {
-            const materialReductionFactor = 1 - (meLevel * 0.01);
-            const adjustedQuantity = Math.ceil(material.quantity * materialReductionFactor);
-            return {
-              ...material,
-              quantity: adjustedQuantity
-            };
-          })
-        }
-      };
+      // No material efficiency adjustments - use blueprint as is
+      const adjustedBlueprint = { ...blueprint };
 
       const response = await fetch('/api/product-setup', {
         method: 'POST',
@@ -183,7 +169,10 @@ const ConfigureProduct: React.FC = () => {
     return null;
   }
 
-  const manufacturingMaterials = blueprint.activityMaterials['1'] || [];
+  // Prioritize reaction materials (activityId 11) if available, otherwise use manufacturing materials (activityId 1)
+  const materials = (blueprint.activityMaterials['11'] && blueprint.activityMaterials['11'].length > 0)
+    ? blueprint.activityMaterials['11']
+    : blueprint.activityMaterials['1'] || [];
 
   return (
     <Box sx={{ 
@@ -200,55 +189,31 @@ const ConfigureProduct: React.FC = () => {
         <Typography>Tech Level: {blueprint.blueprintDetails.techLevel}</Typography>
         <Typography>Max Production Limit: {blueprint.blueprintDetails.maxProductionLimit}</Typography>
         <Typography>Product Quantity: {blueprint.blueprintDetails.productQuantity}</Typography>
-        <Typography>Adjusted Price: {blueprint.blueprintDetails.adjustedPrice.toLocaleString()} ISK</Typography>
+        <Typography>Adjusted Price: {formatIskAmount(blueprint.blueprintDetails.adjustedPrice)}</Typography>
       </Paper>
 
-      {/* ME Level Slider */}
-      <Box sx={{ gridColumn: { xs: '1', md: '1 / -1' } }}>
-        <Paper sx={{ p: 2 }}>
-          <Typography variant="h6" gutterBottom>
-            Material Efficiency Level
-          </Typography>
-          <Slider
-            value={meLevel}
-            onChange={(_, value) => setMeLevel(value as number)}
-            min={0}
-            max={10}
-            step={1}
-            marks
-            valueLabelDisplay="auto"
-          />
-        </Paper>
-      </Box>
 
-      {/* Manufacturing Materials */}
+      {/* Materials */}
       <Box sx={{ gridColumn: { xs: '1', md: '1 / -1' } }}>
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" gutterBottom>
-            Manufacturing Materials
+            Production Materials
           </Typography>
           <TableContainer>
             <Table size="small">
               <TableHead>
                 <TableRow>
                   <TableCell>Material</TableCell>
-                  <TableCell align="right">Base Quantity</TableCell>
-                  <TableCell align="right">Adjusted Quantity (ME {meLevel})</TableCell>
+                  <TableCell align="right">Quantity</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {manufacturingMaterials.map((material) => {
-                  const materialReductionFactor = 1 - (meLevel * 0.01);
-                  const adjustedQuantity = Math.ceil(material.quantity * materialReductionFactor);
-                  
-                  return (
-                    <TableRow key={material.typeid}>
-                      <TableCell>{material.name}</TableCell>
-                      <TableCell align="right">{material.quantity}</TableCell>
-                      <TableCell align="right">{adjustedQuantity}</TableCell>
-                    </TableRow>
-                  );
-                })}
+                {materials.map((material) => (
+                  <TableRow key={material.typeid}>
+                    <TableCell>{material.name}</TableCell>
+                    <TableCell align="right">{material.quantity}</TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </TableContainer>
