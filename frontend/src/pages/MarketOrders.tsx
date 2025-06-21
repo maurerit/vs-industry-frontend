@@ -103,11 +103,13 @@ const MarketOrders: React.FC = () => {
       }
     });
 
-    // Convert to format needed for echarts
-    return Object.entries(orderCounts).map(([name, value]) => ({
-      name,
-      value
-    }));
+    // Convert to format needed for echarts and sort by value in descending order
+    return Object.entries(orderCounts)
+      .map(([name, value]) => ({
+        name,
+        value
+      }))
+      .sort((a, b) => b.value - a.value);
   };
 
   const prepareVolumeSeries = (orders: MarketOrder[]) => {
@@ -122,11 +124,13 @@ const MarketOrders: React.FC = () => {
       }
     });
 
-    // Convert to format needed for echarts
-    return Object.entries(volumeCounts).map(([name, value]) => ({
-      name,
-      value
-    }));
+    // Convert to format needed for echarts and sort by value in descending order
+    return Object.entries(volumeCounts)
+      .map(([name, value]) => ({
+        name,
+        value
+      }))
+      .sort((a, b) => b.value - a.value);
   };
 
   const getChartOptions = (
@@ -191,6 +195,8 @@ const MarketOrders: React.FC = () => {
           radius: ['40%', '70%'],
           center: ['60%', '55%'],
           data: iskData,
+          startAngle: 90,
+          clockwise: true,
           itemStyle: {
             borderColor: '#000',
             borderWidth: 1
@@ -214,6 +220,8 @@ const MarketOrders: React.FC = () => {
           radius: ['0%', '30%'],
           center: ['60%', '55%'],
           data: volumeData,
+          startAngle: 90,
+          clockwise: true,
           itemStyle: {
             borderColor: '#000',
             borderWidth: 1
