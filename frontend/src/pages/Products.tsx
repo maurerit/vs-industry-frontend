@@ -23,7 +23,7 @@
  */
 
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useVaporSeaIndustry } from '../context/VaporSeaIndustryContext';
 import {
@@ -38,17 +38,20 @@ import {
   TablePagination,
   Typography,
   CircularProgress,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   IconButton,
-  Tooltip,
-  SelectChangeEvent,
-  Button
+  Button,
+  TextField,
+  InputAdornment,
+  TableSortLabel
 } from '@mui/material';
-import { Settings as SettingsIcon, Add as AddIcon } from '@mui/icons-material';
+import {
+  Add as AddIcon,
+  Search as SearchIcon,
+  Clear as ClearIcon 
+} from '@mui/icons-material';
+import { debounce } from 'lodash';
 import AddProductDialog from '../components/AddProductDialog.tsx';
+import { formatIskAmount } from '../components/FormattingUtils';
 
 interface Product {
   itemId: number;
@@ -66,17 +69,58 @@ interface ProductResponse {
 
 export const Products: React.FC = () => {
   const navigate = useNavigate();
-  const { productsPage, setProductsPage, productsPageSize, setProductsPageSize } = useVaporSeaIndustry();
+  const { 
+    productsPage, 
+    setProductsPage, 
+    productsPageSize, 
+    setProductsPageSize,
+    productsFilter,
+    setProductsFilter
+  } = useVaporSeaIndustry();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalElements, setTotalElements] = useState(0);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [sortOrder, setSortOrder] = useState<{ field: keyof Product; direction: 'asc' | 'desc' }>({ 
+    field: 'name', 
+    direction: 'asc' 
+  });
+  const [debouncedFilter, setDebouncedFilter] = useState(productsFilter);
+
+  const searchFieldRef = useRef<HTMLInputElement>(null);
+
+  // Create a memoized debounced function using lodash
+  const debouncedSetFilter = useCallback(
+    debounce((filter: string) => {
+      setDebouncedFilter(filter);
+    }, 300),
+    [] // Empty dependency array ensures this is only created once
+  );
+
+  // Update debouncedFilter when productsFilter changes
+  useEffect(() => {
+    debouncedSetFilter(productsFilter);
+
+    // Cleanup function to cancel any pending debounced calls when component unmounts
+    return () => {
+      debouncedSetFilter.cancel();
+    };
+  }, [productsFilter]); // Removed debouncedSetFilter from dependencies as it's memoized
 
   const fetchProducts = async (page: number, pageSize: number) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/product?page=${page}&pageSize=${pageSize}`);
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        pageSize: pageSize.toString()
+      });
+
+      if (debouncedFilter) {
+        queryParams.append('search', debouncedFilter);
+      }
+
+      const response = await fetch(`/api/product?${queryParams.toString()}`);
       if (!response.ok) {
         throw new Error('Failed to fetch products');
       }
@@ -92,20 +136,34 @@ export const Products: React.FC = () => {
 
   useEffect(() => {
     fetchProducts(productsPage, productsPageSize);
-  }, [productsPage, productsPageSize]);
+  }, [productsPage, productsPageSize, debouncedFilter]);
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setProductsPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event: SelectChangeEvent<number>) => {
-    setProductsPageSize(Number(event.target.value));
-    setProductsPage(0);
-  };
-
   const handleTablePaginationRowsPerPageChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setProductsPageSize(parseInt(event.target.value, 10));
     setProductsPage(0);
+  };
+
+  const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setProductsFilter(event.target.value);
+    setProductsPage(0); // Reset to first page when filter changes
+  };
+
+  const handleClearSearch = () => {
+    setProductsFilter('');
+    setTimeout(() => {
+      searchFieldRef.current?.focus();
+    }, 0);
+  };
+
+  const handleSort = (field: keyof Product) => {
+    setSortOrder(prev => ({
+      field,
+      direction: prev.field === field && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
   };
 
   if (loading) {
@@ -130,42 +188,60 @@ export const Products: React.FC = () => {
         <Typography variant="h4" component="h1">
           Products
         </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={() => setIsAddDialogOpen(true)}
-          >
-            Configure Product
-          </Button>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Page Size</InputLabel>
-            <Select
-              value={productsPageSize}
-              label="Page Size"
-              onChange={handleChangeRowsPerPage}
-            >
-              <MenuItem value={10}>10</MenuItem>
-              <MenuItem value={20}>20</MenuItem>
-              <MenuItem value={50}>50</MenuItem>
-              <MenuItem value={100}>100</MenuItem>
-            </Select>
-          </FormControl>
-          <Tooltip title="Configure Products">
-            <IconButton 
-              onClick={() => navigate('/products/configure')}
-              sx={{ 
-                color: 'white',
-                '&:hover': { 
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)' 
-                }
-              }}
-            >
-              <SettingsIcon />
-            </IconButton>
-          </Tooltip>
-        </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => setIsAddDialogOpen(true)}
+        >
+          Configure Product
+        </Button>
+      </Box>
+
+      <Box sx={{ mb: 2 }}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Filter by name..."
+          value={productsFilter}
+          onChange={handleFilterChange}
+          inputRef={searchFieldRef}
+          sx={{
+            backgroundColor: '#1a1a1a',
+            '& .MuiOutlinedInput-root': {
+              color: 'white',
+              '& fieldset': {
+                borderColor: '#333',
+              },
+              '&:hover fieldset': {
+                borderColor: '#444',
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: '#666',
+              },
+            },
+            '& .MuiInputLabel-root': {
+              color: 'white',
+            },
+          }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: 'white' }} />
+              </InputAdornment>
+            ),
+            endAdornment: productsFilter && (
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={handleClearSearch}
+                  size="small"
+                  sx={{ color: 'white', '&:hover': { color: '#ccc' } }}
+                >
+                  <ClearIcon />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
       </Box>
 
       <TableContainer component={Paper} sx={{ mb: 2 }}>
@@ -173,13 +249,53 @@ export const Products: React.FC = () => {
           <TableHead>
             <TableRow>
               <TableCell>Icon</TableCell>
-              <TableCell>Name</TableCell>
+              <TableCell>
+                <TableSortLabel
+                  active={sortOrder.field === 'name'}
+                  direction={sortOrder.field === 'name' ? sortOrder.direction : 'asc'}
+                  onClick={() => handleSort('name')}
+                  sx={{
+                    color: 'white !important',
+                    '& .MuiTableSortLabel-icon': {
+                      color: 'white !important'
+                    }
+                  }}
+                >
+                  Name
+                </TableSortLabel>
+              </TableCell>
               <TableCell align="right">Description</TableCell>
-              <TableCell align="right">Cost</TableCell>
+              <TableCell align="right">
+                <TableSortLabel
+                  active={sortOrder.field === 'cost'}
+                  direction={sortOrder.field === 'cost' ? sortOrder.direction : 'asc'}
+                  onClick={() => handleSort('cost')}
+                  sx={{
+                    color: 'white !important',
+                    '& .MuiTableSortLabel-icon': {
+                      color: 'white !important'
+                    }
+                  }}
+                >
+                  Cost
+                </TableSortLabel>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {products.map((product) => (
+            {[...products]
+              .sort((a, b) => {
+                const aValue = a[sortOrder.field];
+                const bValue = b[sortOrder.field];
+                const multiplier = sortOrder.direction === 'asc' ? 1 : -1;
+
+                if (typeof aValue === 'string' && typeof bValue === 'string') {
+                  return aValue.localeCompare(bValue) * multiplier;
+                }
+
+                return ((aValue as number) - (bValue as number)) * multiplier;
+              })
+              .map((product) => (
               <TableRow 
                 key={product.itemId}
                 hover
@@ -202,7 +318,7 @@ export const Products: React.FC = () => {
                   {product.description || '-'}
                 </TableCell>
                 <TableCell align="right">
-                  {product.cost.toLocaleString()} ISK
+                  {formatIskAmount(product.cost)}
                 </TableCell>
               </TableRow>
             ))}
@@ -226,4 +342,4 @@ export const Products: React.FC = () => {
       />
     </Box>
   );
-}; 
+};

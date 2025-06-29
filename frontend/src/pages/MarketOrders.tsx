@@ -91,7 +91,7 @@ const MarketOrders: React.FC = () => {
     }).format(value) + ' ISK';
   };
 
-  const prepareChartData = (orders: MarketOrder[]) => {
+  const prepareIskAmountSeries = (orders: MarketOrder[]) => {
     // Count orders by item type
     const orderCounts: Record<string, number> = {};
 
@@ -103,14 +103,41 @@ const MarketOrders: React.FC = () => {
       }
     });
 
-    // Convert to format needed for echarts
-    return Object.entries(orderCounts).map(([name, value]) => ({
-      name,
-      value
-    }));
+    // Convert to format needed for echarts and sort by value in descending order
+    return Object.entries(orderCounts)
+      .map(([name, value]) => ({
+        name,
+        value
+      }))
+      .sort((a, b) => b.value - a.value);
   };
 
-  const getChartOptions = (data: { name: string; value: number }[], title: string) => {
+  const prepareVolumeSeries = (orders: MarketOrder[]) => {
+    // Count volumes by item type
+    const volumeCounts: Record<string, number> = {};
+
+    orders.forEach(order => {
+      if (volumeCounts[order.type_name]) {
+        volumeCounts[order.type_name] += order.volume_remain;
+      } else {
+        volumeCounts[order.type_name] = order.volume_remain;
+      }
+    });
+
+    // Convert to format needed for echarts and sort by value in descending order
+    return Object.entries(volumeCounts)
+      .map(([name, value]) => ({
+        name,
+        value
+      }))
+      .sort((a, b) => b.value - a.value);
+  };
+
+  const getChartOptions = (
+    iskData: { name: string; value: number }[], 
+    volumeData: { name: string; value: number }[], 
+    title: string
+  ) => {
     return {
       title: {
         text: `${title} Distribution`,
@@ -123,8 +150,13 @@ const MarketOrders: React.FC = () => {
       tooltip: {
         trigger: 'item',
         formatter: function(params: any) {
-          // Format the value with commas
-          const formattedValue = formatISK(params.value);
+          // Format the value based on series name
+          let formattedValue;
+          if (params.seriesName.includes('Volume')) {
+            formattedValue = new Intl.NumberFormat('en-US').format(params.value);
+          } else {
+            formattedValue = formatISK(params.value);
+          }
           return `${params.seriesName}<br/>${params.name}: ${formattedValue} (${params.percent}%)`;
         }
       },
@@ -162,7 +194,34 @@ const MarketOrders: React.FC = () => {
           type: 'pie',
           radius: ['40%', '70%'],
           center: ['60%', '55%'],
-          data: data,
+          data: iskData,
+          startAngle: 90,
+          clockwise: true,
+          itemStyle: {
+            borderColor: '#000',
+            borderWidth: 1
+          },
+          label: {
+            show: false
+          },
+          emphasis: {
+            scale: true,
+            scaleSize: 10,
+            itemStyle: {
+              shadowBlur: 10,
+              shadowOffsetX: 0,
+              shadowColor: 'rgba(0, 0, 0, 0.5)'
+            }
+          }
+        },
+        {
+          name: `${title} Volume`,
+          type: 'pie',
+          radius: ['0%', '30%'],
+          center: ['60%', '55%'],
+          data: volumeData,
+          startAngle: 90,
+          clockwise: true,
           itemStyle: {
             borderColor: '#000',
             borderWidth: 1
@@ -260,7 +319,11 @@ const MarketOrders: React.FC = () => {
             Sell Orders Distribution
           </Typography>
           <ReactECharts 
-            option={getChartOptions(prepareChartData(sellOrders), 'Sell Orders')} 
+            option={getChartOptions(
+              prepareIskAmountSeries(sellOrders), 
+              prepareVolumeSeries(sellOrders), 
+              'Sell Orders'
+            )}
             style={{ height: '100%', width: '100%' }}
           />
         </Box>
@@ -276,7 +339,11 @@ const MarketOrders: React.FC = () => {
             Buy Orders Distribution
           </Typography>
           <ReactECharts 
-            option={getChartOptions(prepareChartData(buyOrders), 'Buy Orders')} 
+            option={getChartOptions(
+              prepareIskAmountSeries(buyOrders), 
+              prepareVolumeSeries(buyOrders), 
+              'Buy Orders'
+            )}
             style={{ height: '100%', width: '100%' }}
           />
         </Box>

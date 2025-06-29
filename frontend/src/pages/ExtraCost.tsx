@@ -80,7 +80,7 @@ const ExtraCost: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalElements, setTotalElements] = useState(0);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingItem, setEditingItem] = useState<{itemId: number, costType: string} | null>(null);
   const [editValue, setEditValue] = useState<string>('');
   const [editCostType, setEditCostType] = useState<string>('');
   const [savingId, setSavingId] = useState<number | null>(null);
@@ -92,6 +92,7 @@ const ExtraCost: React.FC = () => {
   const [searchResults, setSearchResults] = useState<SearchItem[]>([]);
   const [searching, setSearching] = useState(false);
   const searchItemRef = useRef<HTMLInputElement>(null);
+  const costFieldRef = useRef<HTMLInputElement>(null);
 
   const fetchCosts = async (page: number, pageSize: number) => {
     try {
@@ -115,16 +116,19 @@ const ExtraCost: React.FC = () => {
   }, [page, rowsPerPage]);
 
   const handleEdit = (cost: ExtraCost) => {
-    setEditingId(cost.itemId);
+    setEditingItem({
+      itemId: cost.itemId,
+      costType: cost.costType || ''
+    });
     setEditValue(cost.cost.toString());
     setEditCostType(cost.costType || '');
   };
 
-  const handleSave = async (itemId: number) => {
+  const handleSave = async (itemId: number, costType: string) => {
     try {
       setSavingId(itemId);
       const numericValue = parseFloat(editValue);
-      
+
       if (isNaN(numericValue)) {
         throw new Error('Invalid cost value');
       }
@@ -147,9 +151,9 @@ const ExtraCost: React.FC = () => {
 
       // Update the local state with the new value
       setCosts(costs.map(cost => 
-        cost.itemId === itemId ? { ...cost, cost: numericValue, costType: editCostType } : cost
+        cost.itemId === itemId && cost.costType === costType ? { ...cost, cost: numericValue, costType: editCostType } : cost
       ));
-      setEditingId(null);
+      setEditingItem(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred while saving');
     } finally {
@@ -158,7 +162,7 @@ const ExtraCost: React.FC = () => {
   };
 
   const handleCancel = () => {
-    setEditingId(null);
+    setEditingItem(null);
     setEditValue('');
     setEditCostType('');
   };
@@ -208,6 +212,19 @@ const ExtraCost: React.FC = () => {
     }
   }, [isAddingNew]);
 
+  // Focus and select text in the cost field when edit mode is activated
+  useEffect(() => {
+    if (editingItem !== null && costFieldRef.current) {
+      // Small timeout to ensure the field is rendered before focusing
+      setTimeout(() => {
+        if (costFieldRef.current) {
+          costFieldRef.current.focus();
+          costFieldRef.current.select();
+        }
+      }, 50);
+    }
+  }, [editingItem]);
+
   const handleAddNew = () => {
     setIsAddingNew(true);
     setNewItemSearch('');
@@ -230,7 +247,7 @@ const ExtraCost: React.FC = () => {
     try {
       setSavingId(-1); // Use -1 to indicate saving new item
       const numericValue = parseFloat(newItemCost);
-      
+
       if (isNaN(numericValue)) {
         throw new Error('Invalid cost value');
       }
@@ -258,7 +275,7 @@ const ExtraCost: React.FC = () => {
         cost: numericValue,
         costType: newItemCostType
       }]);
-      
+
       setIsAddingNew(false);
       setNewItemSearch('');
       setNewItemCost('');
@@ -414,36 +431,49 @@ const ExtraCost: React.FC = () => {
                   {renderItemWithIcon(cost)}
                 </TableCell>
                 <TableCell align="right">
-                  {editingId === cost.itemId ? (
+                  {editingItem && editingItem.itemId === cost.itemId && editingItem.costType === cost.costType ? (
                     <TextField
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
                       size="small"
                       sx={{ width: 150 }}
+                      inputRef={costFieldRef}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && savingId !== cost.itemId) {
+                          e.preventDefault();
+                          handleSave(cost.itemId, cost.costType || '');
+                        }
+                      }}
                     />
                   ) : (
                     cost.cost.toLocaleString()
                   )}
                 </TableCell>
                 <TableCell align="right">
-                  {editingId === cost.itemId ? (
+                  {editingItem && editingItem.itemId === cost.itemId && editingItem.costType === cost.costType ? (
                     <TextField
                       value={editCostType}
                       onChange={(e) => setEditCostType(e.target.value)}
                       size="small"
                       sx={{ width: 150 }}
                       placeholder="User definable"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && savingId !== cost.itemId) {
+                          e.preventDefault();
+                          handleSave(cost.itemId, cost.costType || '');
+                        }
+                      }}
                     />
                   ) : (
                     cost.costType || ''
                   )}
                 </TableCell>
                 <TableCell align="right">
-                  {editingId === cost.itemId ? (
+                  {editingItem && editingItem.itemId === cost.itemId && editingItem.costType === cost.costType ? (
                     <>
                       <Tooltip title="Save">
                         <IconButton
-                          onClick={() => handleSave(cost.itemId)}
+                          onClick={() => handleSave(cost.itemId, cost.costType || '')}
                           disabled={savingId === cost.itemId}
                         >
                           <SaveIcon />

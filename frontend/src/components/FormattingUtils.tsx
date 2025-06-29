@@ -23,28 +23,11 @@
  */
 
 
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-
-// https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8080',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
-      },
-      '/js-api': {
-        target: 'http://localhost:3001',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/js-api/, '')
-      },
-      '/login/oauth2/code/eve': {
-        target: 'http://localhost:3001',
-        changeOrigin: true
-      }
-    }
-  }
-})
+/**
+ * Formats a number as an ISK amount with exactly 2 decimal places
+ * @param amount - The number to format
+ * @returns Formatted string with ISK suffix
+ */
+export const formatIskAmount = (amount: number): string => {
+  return `${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ISK`;
+};

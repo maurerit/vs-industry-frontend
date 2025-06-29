@@ -29,6 +29,14 @@ export interface Material {
   quantity: number;
   maketype: string | null;
   price: number | null;
+  marketPrice?: number;
+}
+
+export interface ExtraCost {
+  itemId: number;
+  name: string;
+  costType: string;
+  cost: number;
 }
 
 export interface BlueprintData {
@@ -37,10 +45,19 @@ export interface BlueprintData {
     productTypeID: number;
     productTypeName: string;
     productQuantity: number | null;
+    productMakeTypeID: number;
+    cost: number;
+    techLevel: number;
+  };
+  transactionCosts: {
+    brokersFee: number;
+    salesTax: number;
+    extraCosts: ExtraCost[];
   };
   activityMaterials: {
     manufacturing: Material[];
     invention: Material[];
     copying: Material[];
+    reaction?: Material[];
   };
-} 
+}

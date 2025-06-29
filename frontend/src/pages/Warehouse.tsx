@@ -28,6 +28,7 @@ import { useNavigate } from 'react-router-dom';
 import { useVaporSeaIndustry } from '../context/VaporSeaIndustryContext';
 import {
   Box,
+  Button,
   Paper,
   Table,
   TableBody,
@@ -49,7 +50,9 @@ import {
   Save as SaveIcon,
   Numbers as NumbersIcon,
   PriceChange as PriceChangeIcon,
+  Add as AddIcon,
 } from '@mui/icons-material';
+import AddDeliveryDialog from '../components/AddDeliveryDialog';
 
 interface InventoryItem {
   itemId: number;
@@ -80,6 +83,7 @@ export const Warehouse: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<SortOrder>({ field: 'name', direction: 'asc' });
   const [editingItem, setEditingItem] = useState<{ itemId: number; field: 'quantity' | 'costPerItem'; value: number } | null>(null);
   const [saving, setSaving] = useState<number | null>(null);
+  const [isAddDeliveryDialogOpen, setIsAddDeliveryDialogOpen] = useState(false);
 
   const searchFieldRef = useRef<HTMLInputElement>(null);
   const editFieldRef = useRef<HTMLInputElement>(null);
@@ -241,6 +245,18 @@ export const Warehouse: React.FC = () => {
     setNameFilter(event.target.value);
   };
 
+  const handleOpenAddDeliveryDialog = () => {
+    setIsAddDeliveryDialogOpen(true);
+  };
+
+  const handleCloseAddDeliveryDialog = () => {
+    setIsAddDeliveryDialogOpen(false);
+  };
+
+  const handleDeliverySuccess = () => {
+    fetchItems(); // Refresh the items list after a successful delivery
+  };
+
   const sortedItems = [...filteredItems].sort((a, b) => {
     const aValue = a[sortOrder.field];
     const bValue = b[sortOrder.field];
@@ -272,17 +288,29 @@ export const Warehouse: React.FC = () => {
         <Typography variant="h4" sx={{ color: 'white' }}>
           Warehouse Inventory
         </Typography>
-        <Paper sx={{ p: 2, backgroundColor: '#1a1a1a', color: 'white' }}>
-          <Typography variant="h6" component="div">
-            Total Warehouse Value:
-          </Typography>
-          <Typography variant="h5" component="div" sx={{ color: '#4caf50' }}>
-            {totalValue.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2
-            })} ISK
-          </Typography>
-        </Paper>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Paper sx={{ p: 2, backgroundColor: '#1a1a1a', color: 'white' }}>
+            <Typography variant="h6" component="div">
+              Total Warehouse Value:
+            </Typography>
+            <Typography variant="h5" component="div" sx={{ color: '#4caf50' }}>
+              {totalValue.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })} ISK
+            </Typography>
+          </Paper>
+          <Button
+            variant="contained"
+            color="primary"
+            size="small"
+            startIcon={<AddIcon />}
+            onClick={handleOpenAddDeliveryDialog}
+            sx={{ alignSelf: 'flex-end', width: 'auto' }}
+          >
+            Add Delivery
+          </Button>
+        </Box>
       </Box>
 
       <Box sx={{ mb: 2 }}>
@@ -505,6 +533,13 @@ export const Warehouse: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Add Delivery Dialog */}
+      <AddDeliveryDialog
+        open={isAddDeliveryDialogOpen}
+        onClose={handleCloseAddDeliveryDialog}
+        onSuccess={handleDeliverySuccess}
+      />
     </Box>
   );
 }; 
