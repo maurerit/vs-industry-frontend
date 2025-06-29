@@ -288,15 +288,7 @@ export const Warehouse: React.FC = () => {
         <Typography variant="h4" sx={{ color: 'white' }}>
           Warehouse Inventory
         </Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={handleOpenAddDeliveryDialog}
-          >
-            Add Delivery
-          </Button>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Paper sx={{ p: 2, backgroundColor: '#1a1a1a', color: 'white' }}>
             <Typography variant="h6" component="div">
               Total Warehouse Value:
@@ -308,6 +300,16 @@ export const Warehouse: React.FC = () => {
               })} ISK
             </Typography>
           </Paper>
+          <Button
+            variant="contained"
+            color="primary"
+            size="small"
+            startIcon={<AddIcon />}
+            onClick={handleOpenAddDeliveryDialog}
+            sx={{ alignSelf: 'flex-end', width: 'auto' }}
+          >
+            Add Delivery
+          </Button>
         </Box>
       </Box>
 
