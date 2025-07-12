@@ -81,10 +81,9 @@ const ExtraCost: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalElements, setTotalElements] = useState(0);
-  const [editingItem, setEditingItem] = useState<{itemId: number, costType: string} | null>(null);
+  const [editingItem, setEditingItem] = useState<{itemId: number, costType: string, originalCostType: string} | null>(null);
   const [editValue, setEditValue] = useState<string>('');
   const [editCostType, setEditCostType] = useState<string>('');
-  const [originalCostType, setOriginalCostType] = useState<string>('');
   const [savingId, setSavingId] = useState<number | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [newItemSearch, setNewItemSearch] = useState('');
@@ -120,15 +119,17 @@ const ExtraCost: React.FC = () => {
   const handleEdit = (cost: ExtraCost) => {
     setEditingItem({
       itemId: cost.itemId,
-      costType: cost.costType || ''
+      costType: cost.costType || '',
+      originalCostType: cost.costType || ''
     });
     setEditValue(cost.cost.toString());
     setEditCostType(cost.costType || '');
-    setOriginalCostType(cost.costType || '');
   };
 
   const handleSave = async (itemId: number, costType: string) => {
     try {
+      if (!editingItem) return;
+
       setSavingId(itemId);
       const numericValue = parseFloat(editValue);
 
@@ -144,8 +145,8 @@ const ExtraCost: React.FC = () => {
         body: JSON.stringify({ 
           itemId: itemId,
           cost: numericValue,
-          costType: editCostType,
-          originalCostType: originalCostType
+          costType: costType,
+          originalCostType: editingItem.originalCostType
         }),
       });
 
@@ -155,7 +156,7 @@ const ExtraCost: React.FC = () => {
 
       // Update the local state with the new value
       setCosts(costs.map(cost => 
-        cost.itemId === itemId && cost.costType === originalCostType ? { ...cost, cost: numericValue, costType: editCostType, originalCostType: originalCostType } : cost
+        cost.itemId === itemId && cost.costType === editingItem.originalCostType ? { ...cost, cost: numericValue, costType: editCostType } : cost
       ));
       setEditingItem(null);
     } catch (err) {
@@ -169,7 +170,6 @@ const ExtraCost: React.FC = () => {
     setEditingItem(null);
     setEditValue('');
     setEditCostType('');
-    setOriginalCostType('');
   };
 
   const handleChangePage = (_event: unknown, newPage: number) => {
