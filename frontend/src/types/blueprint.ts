@@ -36,6 +36,7 @@ export interface ExtraCost {
   itemId: number;
   name: string;
   costType: string;
+  originalCostType?: string;
   cost: number;
 }
 
