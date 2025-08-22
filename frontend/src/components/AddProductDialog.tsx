@@ -123,6 +123,18 @@ const AddProductDialog: React.FC<AddProductDialogProps> = ({ open, onClose }) =>
     }
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter' && !selectedOption && options.length > 0 && !loading) {
+      // Auto-select the first option and proceed
+      const firstOption = options[0];
+      setSelectedOption(firstOption);
+      navigate(`/configure-product/${firstOption.id}`);
+      setSelectedOption(null);
+      setSearchTerm('');
+      onClose();
+    }
+  };
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>Add New Product</DialogTitle>
@@ -144,6 +156,7 @@ const AddProductDialog: React.FC<AddProductDialogProps> = ({ open, onClose }) =>
               fullWidth
               margin="normal"
               inputRef={autocompleteRef}
+              onKeyDown={handleKeyDown}
               InputProps={{
                 ...params.InputProps,
                 endAdornment: (
