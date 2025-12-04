@@ -30,7 +30,7 @@
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.10",
     "@types/koa": "^3.0.0",
-    "@types/koa-bodyparser": "^4.3.12",
+    "@types/koa-bodyparser": "^4.3.13",
     "@types/koa-router": "^7.4.8",
     "@types/node": "^24.3.0",
     "nodemon": "^3.1.10",
